@@ -1,0 +1,38 @@
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Editors / local tooling
+.idea/
+.vscode/
+.fleet/
+.zed/
+.claude/
+.codex/
+.cursor/
+
+# Frontend (Next.js)
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/.vercel/
+/frontend/tsconfig.tsbuildinfo
+/frontend/.env*.local
+
+# API (Laravel / local env)
+/api/.env
+/api/.env.*
+!/api/.env.example
+/api/node_modules/
+/api/vendor/
+/api/public/build/
+/api/public/hot
+/api/public/storage
+/api/storage/*.key
+/api/storage/pail/
+/api/.phpunit.result.cache
+/api/.phpunit.cache/
+/api/auth.json
+/api/.claude/
+/api/.codex/
+/api/.cursor/

@@ -1,0 +1,196 @@
+/* ─── Cabinet page ───────────────────────────────────────────── */
+
+.cabinet-main {
+  flex: 1;
+  background: var(--cream);
+  padding-bottom: 80px;
+}
+
+.cabinet-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+/* ─── Sidebar ────────────────────────────────────────────────── */
+.cabinet-sidebar {
+  position: sticky;
+  top: 80px;
+}
+.cabinet-sidebar-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.cabinet-sidebar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+.cabinet-sidebar-sub {
+  font-size: 12px;
+  color: var(--gray-light);
+  line-height: 1.5;
+}
+.cabinet-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+.cabinet-nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--gray-light);
+  margin-bottom: 8px;
+}
+.cabinet-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cabinet-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--gray);
+  transition: background var(--transition), color var(--transition);
+}
+.cabinet-nav-link:hover {
+  background: var(--cream);
+  color: var(--dark);
+}
+.cabinet-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.cabinet-note-icon {
+  font-size: 13px;
+  color: var(--gray-light);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.cabinet-note p {
+  font-size: 12px;
+  color: var(--gray-light);
+  line-height: 1.5;
+}
+
+/* ─── Content ────────────────────────────────────────────────── */
+.cabinet-content {
+  min-width: 0;
+}
+.cabinet-iframe-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-height: 600px;
+  position: relative;
+}
+.cabinet-iframe {
+  display: block;
+  border: none;
+  width: 100%;
+}
+
+/* Лоадер */
+.cabinet-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 400px;
+  color: var(--gray-light);
+  font-size: 14px;
+}
+.cabinet-loader-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Ошибка */
+.cabinet-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 400px;
+  padding: 48px 24px;
+  text-align: center;
+}
+.cabinet-error-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--dark);
+}
+.cabinet-error-sub {
+  font-size: 13px;
+  color: var(--gray-light);
+  max-width: 320px;
+  line-height: 1.5;
+}
+.cabinet-error-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn-outline-dark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark);
+  background: var(--white);
+  transition: border-color var(--transition);
+}
+.btn-outline-dark:hover { border-color: #C4C0BA; }
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cabinet-layout {
+    grid-template-columns: 1fr;
+  }
+  .cabinet-sidebar { position: static; }
+  .cabinet-nav-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .cabinet-nav-link {
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+}
