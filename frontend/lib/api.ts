@@ -1,7 +1,16 @@
+import 'server-only'
+
 import type { Box, BoxApiParams } from '@/types/box'
 import type { Warehouse, ApiResponse } from '@/types/warehouse'
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api'
+function getApiBase(): string {
+  const base =
+    process.env.API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    'http://127.0.0.1:8000/api'
+
+  return base.replace(/\/+$/, '')
+}
 
 /**
  * TTL синхронизированы с Redis-кэшем на бэкенде (CacheKeys):
@@ -14,7 +23,7 @@ const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api'
  */
 
 export async function getWarehouses(): Promise<Warehouse[]> {
-  const res = await fetch(`${BASE}/warehouses`, {
+  const res = await fetch(`${getApiBase()}/warehouses`, {
     next: { revalidate: 60 },   // = CacheKeys::TTL_AVAILABILITY
   })
   if (!res.ok) throw new Error(`Не удалось получить список складов: ${res.status}`)
@@ -23,7 +32,7 @@ export async function getWarehouses(): Promise<Warehouse[]> {
 }
 
 export async function getWarehouse(slug: string): Promise<Warehouse> {
-  const res = await fetch(`${BASE}/warehouses/${slug}`, {
+  const res = await fetch(`${getApiBase()}/warehouses/${slug}`, {
     next: { revalidate: 60 },   // = CacheKeys::TTL_AVAILABILITY
   })
   if (res.status === 404) {
@@ -46,7 +55,7 @@ export async function getBoxes(params: BoxApiParams): Promise<{ data: Box[]; tot
   if (params.page)                     query.set('page',        String(params.page))
   if (params.per_page)                 query.set('per_page',    String(params.per_page))
 
-  const res = await fetch(`${BASE}/boxes?${query}`, {
+  const res = await fetch(`${getApiBase()}/boxes?${query}`, {
     next: { revalidate: 300 },  // = CacheKeys::TTL_BOXES
   })
   if (!res.ok) throw new Error(`Ошибка загрузки боксов: ${res.status}`)
@@ -55,7 +64,7 @@ export async function getBoxes(params: BoxApiParams): Promise<{ data: Box[]; tot
 }
 
 export async function getBox(id: string | number): Promise<Box> {
-  const res = await fetch(`${BASE}/boxes/${id}`, {
+  const res = await fetch(`${getApiBase()}/boxes/${id}`, {
     next: { revalidate: 300 },  // = CacheKeys::TTL_BOXES
   })
   if (res.status === 404) {
