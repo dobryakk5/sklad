@@ -1,0 +1,14 @@
+sklad-next:
+  image: node:20
+  container_name: sklad-next
+  restart: unless-stopped
+  working_dir: /app
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  ports:
+    - "3000:3000"
+  volumes:
+    - /var/www/sklad/frontend:/app
+    - next_node_modules:/app/node_modules
+  command: >
+    sh -c "npm install && npm run build && npm run start -- --hostname 0.0.0.0 --port 3000"
