@@ -14,6 +14,7 @@ final class BitrixBoxRepository implements BoxRepositoryInterface
 {
     private const IBLOCK_ID     = 40;
     private const DB_CONNECTION = 'bitrix';
+    private const BASE_PRICE_GROUP_ID = 1;
 
     // Property ID-ы из b_iblock_property WHERE iblock_id=40
     private const PROP_STATUS      = 484;
@@ -149,6 +150,12 @@ final class BitrixBoxRepository implements BoxRepositoryInterface
             ->table('b_iblock_element as ie')
             ->leftJoin('b_iblock_element_property as ipv', 'ipv.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
             ->leftJoin('b_file as f', 'f.ID', '=', 'ie.PREVIEW_PICTURE')
+            ->leftJoin(
+                'b_catalog_price as cp',
+                fn($join) => $join
+                    ->on('cp.PRODUCT_ID', '=', 'ie.ID')
+                    ->where('cp.CATALOG_GROUP_ID', '=', self::BASE_PRICE_GROUP_ID)
+            )
             ->leftJoin('b_uts_iblock_40_section as uf', 'uf.VALUE_ID', '=', 'ie.IBLOCK_SECTION_ID')
             ->where('ie.IBLOCK_ID', self::IBLOCK_ID)
             ->where('ie.ACTIVE', 'Y')
@@ -168,6 +175,7 @@ final class BitrixBoxRepository implements BoxRepositoryInterface
                 ie.SORT                                                             AS sort,
                 f.SUBDIR                                                            AS photo_subdir,
                 f.FILE_NAME                                                         AS photo_file_name,
+                MAX(cp.PRICE)                                                       AS catalog_price,
                 uf.UF_PRICE_ON_MAP                                                  AS price_per_sqm_raw,
                 MAX(CASE WHEN ipv.IBLOCK_PROPERTY_ID = ? THEN ipv.VALUE_ENUM END)  AS status_enum_id,
                 MAX(CASE WHEN ipv.IBLOCK_PROPERTY_ID = ? THEN ipv.VALUE_NUM  END)  AS square,
@@ -218,11 +226,22 @@ final class BitrixBoxRepository implements BoxRepositoryInterface
             return null;
         }
 
-        $square      = $row->square !== null ? (float) $row->square : null;
-        $pricePerSqm = $this->parsePricePerSqm((string) ($row->price_per_sqm_raw ?? ''));
-        $price       = ($square !== null && $pricePerSqm !== null)
-            ? round($square * $pricePerSqm, 2)
-            : null;
+        $square              = $row->square !== null ? (float) $row->square : null;
+        $warehousePricePerSqm = $this->parsePricePerSqm((string) ($row->price_per_sqm_raw ?? ''));
+        $catalogPrice        = $row->catalog_price !== null ? (float) $row->catalog_price : null;
+
+        if ($catalogPrice !== null && $catalogPrice <= 0) {
+            $catalogPrice = null;
+        }
+
+        $pricePerSqm = ($catalogPrice !== null && $square !== null && $square > 0)
+            ? round($catalogPrice / $square, 2)
+            : $warehousePricePerSqm;
+
+        $price = $catalogPrice
+            ?? (($square !== null && $warehousePricePerSqm !== null)
+                ? round($square * $warehousePricePerSqm, 2)
+                : null);
 
         $name = trim((string) ($row->name_for_site ?? ''));
         if ($name === '') {
@@ -287,15 +306,21 @@ final class BitrixBoxRepository implements BoxRepositoryInterface
     /** "1550 р/м2" → 1550.0 | "1 895 р/м2" → 1895.0 */
     private function parsePricePerSqm(string $raw): ?float
     {
-        if (trim($raw) === '') {
+        $trimmed = trim($raw);
+
+        if ($trimmed === '') {
             return null;
         }
 
-        $clean = preg_replace('/[^\d.,]/', '', $raw);
-        $clean = str_replace(',', '.', $clean);
-        $value = filter_var($clean, FILTER_VALIDATE_FLOAT);
+        $cleaned = str_replace([' ', "\xc2\xa0", ','], ['', '', '.'], $trimmed);
 
-        return $value !== false && $value > 0 ? $value : null;
+        if (preg_match('/(\d+(?:\.\d+)?)/', $cleaned, $m)) {
+            $value = (float) $m[1];
+
+            return $value > 0 ? $value : null;
+        }
+
+        return null;
     }
 
     private function buildFileUrl(string $subdir, string $fileName): ?string

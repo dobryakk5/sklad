@@ -12,9 +12,11 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
     private const IBLOCK_ID       = 40;
     private const IBLOCK_GALLERY  = 43;
     private const DB_CONNECTION   = 'bitrix';
+    private const BASE_PRICE_GROUP_ID = 1;
 
     // ID свойства STATUS боксов (из b_iblock_property WHERE iblock_id=40)
     private const PROP_STATUS = 484;
+    private const PROP_SQUARE = 480;
 
     // ID пользовательского поля UF_DISTRICT в b_user_field (ENTITY_ID = 'IBLOCK_40_SECTION').
     // Тип: enumeration — в b_uts_iblock_40_section хранится INTEGER (= b_user_field_enum.ID).
@@ -30,15 +32,17 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
         $rows = $this->fetchSections();
 
         $warehouseIds = array_column($rows, 'id');
-        $photoMap     = $this->fetchFirstPhotoPerWarehouse($warehouseIds);
+        $previewPhotos = $this->fetchPreviewPhotosPerWarehouse($warehouseIds);
         $boxCounts    = $this->fetchBoxCounts($warehouseIds);
+        $priceMap     = $this->fetchFallbackPricePerSqm($warehouseIds);
 
         return array_map(
             fn(object $row) => $this->hydrate(
                 $row,
-                $photoMap[$row->id] ?? null,
-                [],
+                $previewPhotos[$row->id][0] ?? null,
+                $previewPhotos[$row->id] ?? [],
                 $boxCounts[$row->id] ?? ['total' => 0, 'available' => 0],
+                $priceMap[$row->id] ?? null,
             ),
             $rows
         );
@@ -54,12 +58,14 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
 
         $photos    = $this->getPhotos($id);
         $boxCounts = $this->fetchBoxCounts([$id]);
+        $priceMap  = $this->fetchFallbackPricePerSqm([$id]);
 
         return $this->hydrate(
             $row,
             $photos[0] ?? null,
             $photos,
             $boxCounts[$id] ?? ['total' => 0, 'available' => 0],
+            $priceMap[$id] ?? null,
         );
     }
 
@@ -78,12 +84,14 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
         $id        = (int) $row->id;
         $photos    = $this->getPhotos($id);
         $boxCounts = $this->fetchBoxCounts([$id]);
+        $priceMap  = $this->fetchFallbackPricePerSqm([$id]);
 
         return $this->hydrate(
             $row,
             $photos[0] ?? null,
             $photos,
             $boxCounts[$id] ?? ['total' => 0, 'available' => 0],
+            $priceMap[$id] ?? null,
         );
     }
 
@@ -186,7 +194,7 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
      * @param  int[]  $warehouseIds
      * @return array<int, string>  warehouseId → url
      */
-    private function fetchFirstPhotoPerWarehouse(array $warehouseIds): array
+    private function fetchPreviewPhotosPerWarehouse(array $warehouseIds, int $limit = 3): array
     {
         if (empty($warehouseIds)) {
             return [];
@@ -207,38 +215,44 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
 
         $gallerySectionIds = $gallerySections->keys()->all();
 
-        $firstIds = DB::connection(self::DB_CONNECTION)
-            ->table('b_iblock_element')
-            ->whereIn('IBLOCK_SECTION_ID', $gallerySectionIds)
-            ->where('IBLOCK_ID', self::IBLOCK_GALLERY)
-            ->where('ACTIVE', 'Y')
-            ->whereNotNull('DETAIL_PICTURE')
-            ->groupBy('IBLOCK_SECTION_ID')
-            ->selectRaw('IBLOCK_SECTION_ID, MIN(ID) as min_id')
-            ->pluck('min_id', 'IBLOCK_SECTION_ID');
-
-        if ($firstIds->isEmpty()) {
-            return [];
-        }
-
         $files = DB::connection(self::DB_CONNECTION)
             ->table('b_iblock_element as ie')
             ->join('b_file as f', 'f.ID', '=', 'ie.DETAIL_PICTURE')
-            ->whereIn('ie.ID', $firstIds->values()->all())
+            ->whereIn('IBLOCK_SECTION_ID', $gallerySectionIds)
+            ->where('ie.IBLOCK_ID', self::IBLOCK_GALLERY)
+            ->where('ie.ACTIVE', 'Y')
+            ->whereNotNull('ie.DETAIL_PICTURE')
             ->select([
                 'ie.IBLOCK_SECTION_ID as gallery_section_id',
                 'f.SUBDIR             as subdir',
                 'f.FILE_NAME          as file_name',
             ])
-            ->get()
-            ->keyBy('gallery_section_id');
+            ->orderBy('ie.IBLOCK_SECTION_ID')
+            ->orderBy('ie.SORT')
+            ->orderBy('ie.ID')
+            ->get();
 
         $result = [];
-        foreach ($gallerySections as $gallerySectionId => $mapping) {
-            $file = $files->get($gallerySectionId);
-            if ($file) {
-                $result[$mapping->warehouse_id] = $this->buildFileUrl($file->subdir, $file->file_name);
+        foreach ($files as $file) {
+            $mapping = $gallerySections->get($file->gallery_section_id);
+            if (!$mapping) {
+                continue;
             }
+
+            $warehouseId = (int) $mapping->warehouse_id;
+            $photoUrl    = $this->buildFileUrl($file->subdir, $file->file_name);
+
+            if ($photoUrl === null) {
+                continue;
+            }
+
+            $result[$warehouseId] ??= [];
+
+            if (count($result[$warehouseId]) >= $limit) {
+                continue;
+            }
+
+            $result[$warehouseId][] = $photoUrl;
         }
 
         return $result;
@@ -290,6 +304,62 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
     }
 
     /**
+     * Возвращает fallback-цену м² из реальных catalog prices боксов, если у склада пуст UF_PRICE_ON_MAP.
+     *
+     * @param  int[]  $warehouseIds
+     * @return array<int, float>
+     */
+    private function fetchFallbackPricePerSqm(array $warehouseIds): array
+    {
+        if (empty($warehouseIds)) {
+            return [];
+        }
+
+        $rows = DB::connection(self::DB_CONNECTION)
+            ->table('b_iblock_element as ie')
+            ->join(
+                'b_iblock_element_property as status_prop',
+                fn($join) => $join
+                    ->on('status_prop.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
+                    ->where('status_prop.IBLOCK_PROPERTY_ID', '=', self::PROP_STATUS)
+            )
+            ->join(
+                'b_iblock_element_property as square_prop',
+                fn($join) => $join
+                    ->on('square_prop.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
+                    ->where('square_prop.IBLOCK_PROPERTY_ID', '=', self::PROP_SQUARE)
+            )
+            ->join(
+                'b_catalog_price as cp',
+                fn($join) => $join
+                    ->on('cp.PRODUCT_ID', '=', 'ie.ID')
+                    ->where('cp.CATALOG_GROUP_ID', '=', self::BASE_PRICE_GROUP_ID)
+            )
+            ->where('ie.IBLOCK_ID', self::IBLOCK_ID)
+            ->where('ie.ACTIVE', 'Y')
+            ->whereIn('ie.IBLOCK_SECTION_ID', $warehouseIds)
+            ->whereIn('status_prop.VALUE_ENUM', self::visibleStatusIds())
+            ->where('square_prop.VALUE_NUM', '>', 0)
+            ->where('cp.PRICE', '>', 0)
+            ->groupBy('ie.IBLOCK_SECTION_ID')
+            ->selectRaw(
+                'ie.IBLOCK_SECTION_ID as warehouse_id, MIN(cp.PRICE / square_prop.VALUE_NUM) as price_per_sqm'
+            )
+            ->get();
+
+        $result = [];
+        foreach ($rows as $row) {
+            if ($row->price_per_sqm === null) {
+                continue;
+            }
+
+            $result[(int) $row->warehouse_id] = round((float) $row->price_per_sqm, 2);
+        }
+
+        return $result;
+    }
+
+    /**
      * @return int[]
      */
     private static function visibleStatusIds(): array
@@ -312,8 +382,10 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
         ?string $firstPhoto = null,
         array   $allPhotos  = [],
         array   $boxCounts  = ['total' => 0, 'available' => 0],
+        ?float  $fallbackPricePerSqm = null,
     ): WarehouseDTO {
         [$lat, $lng] = $this->parseCoords($row->map_coords ?? '');
+        $pricePerSqm = $this->parsePricePerSqm($row->price_per_sqm_raw ?? '') ?? $fallbackPricePerSqm;
 
         return new WarehouseDTO(
             id:                   (int) $row->id,
@@ -326,7 +398,7 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             lat:                  $lat,
             lng:                  $lng,
             metro:                $this->parseMetro($row->metro_raw ?? ''),
-            pricePerSqm:          $this->parsePricePerSqm($row->price_per_sqm_raw ?? ''),
+            pricePerSqm:          $pricePerSqm,
             description:          $this->stripHtml($row->description ?? ''),
             photos:               $allPhotos ?: ($firstPhoto ? [$firstPhoto] : []),
             district:             $this->parseDistrict($row->district ?? null),

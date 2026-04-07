@@ -43,6 +43,32 @@
   color: var(--gray-light);
 }
 
+.catalog-hero {
+  position: relative;
+  overflow: hidden;
+  height: clamp(240px, 34vw, 420px);
+  margin: 0 0 24px;
+  border-radius: calc(var(--radius-lg) + 6px);
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(17, 24, 39, 0.04), rgba(17, 24, 39, 0.18)),
+    linear-gradient(135deg, #f4efe7 0%, #ece6db 100%);
+  box-shadow: 0 18px 42px rgba(18, 23, 34, 0.08);
+}
+
+.catalog-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(21, 26, 34, 0) 0%, rgba(21, 26, 34, 0.2) 100%);
+  pointer-events: none;
+}
+
+.catalog-hero-img {
+  object-fit: cover;
+}
+
 /* Warehouse info bar */
 .warehouse-info-bar {
   display: flex;
@@ -432,6 +458,10 @@
 @media (max-width: 640px) {
   .box-grid { grid-template-columns: 1fr; }
   .catalog-header { flex-direction: column; align-items: flex-start; }
+  .catalog-hero {
+    height: 220px;
+    margin-bottom: 18px;
+  }
   .filters-row { flex-direction: column; }
   .filter-select { min-width: 100%; width: 100%; }
 }

@@ -1,7 +1,9 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { getWarehouse, getBoxes } from '@/lib/api'
 import { formatNumberRu } from '@/lib/format'
+import { BITRIX_BASE } from '@/lib/constants'
 import { BoxGrid } from '@/components/catalog/BoxGrid'
 import type { Metadata } from 'next'
 import type { Warehouse } from '@/types/warehouse'
@@ -44,6 +46,7 @@ async function CatalogContent({ warehouse }: { warehouse: Warehouse }) {
 export default async function WarehouseCatalogPage({ params }: Props) {
   const { slug } = await params
   const warehouse = await getWarehouse(slug)
+  const heroPhoto = warehouse.photo_url ?? warehouse.photos[0] ?? null
 
   return (
     <main className="catalog-main">
@@ -69,6 +72,19 @@ export default async function WarehouseCatalogPage({ params }: Props) {
             Арендовать на alfasklad.ru ↗
           </a>
         </div>
+
+        {heroPhoto && (
+          <div className="catalog-hero">
+            <Image
+              src={`${BITRIX_BASE}${heroPhoto}`}
+              alt={warehouse.name}
+              fill
+              priority
+              sizes="(max-width: 640px) 100vw, 1200px"
+              className="catalog-hero-img"
+            />
+          </div>
+        )}
 
         <Suspense fallback={<GridSkeleton />}>
           <CatalogContent warehouse={warehouse} />

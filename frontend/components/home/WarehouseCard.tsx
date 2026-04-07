@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState } from 'react'
 import { formatNumberRu } from '@/lib/format'
 import type { Warehouse } from '@/types/warehouse'
 
@@ -43,16 +46,18 @@ export function WarehouseCard({ warehouse, index }: Props) {
   const freeCount   = warehouse.available_boxes_count
   const totalCount  = warehouse.total_boxes_count
   const freePct     = totalCount > 0 ? Math.round((freeCount / totalCount) * 100) : 0
+  const photoCandidates = warehouse.photos.length > 0
+    ? warehouse.photos
+    : (warehouse.photo_url ? [warehouse.photo_url] : [])
+  const [photoIndex, setPhotoIndex] = useState(0)
 
   const availColor =
     freePct > 40 ? '#16A34A' :
     freePct > 15 ? '#E06820' :
     '#DC2626'
 
-  // photo_url — относительный путь /upload/..., добавляем CDN-хост
-  const photoSrc = warehouse.photo_url
-    ? `${BITRIX_CDN}${warehouse.photo_url}`
-    : null
+  const currentPhoto = photoCandidates[photoIndex] ?? null
+  const photoSrc = currentPhoto ? `${BITRIX_CDN}${currentPhoto}` : null
 
   // price_per_sqm теперь number, не string
   const priceFormatted = formatNumberRu(warehouse.price_per_sqm)
@@ -68,11 +73,19 @@ export function WarehouseCard({ warehouse, index }: Props) {
         <div className="card-photo">
           {photoSrc ? (
             <Image
+              key={photoSrc}
               src={photoSrc}
               alt={warehouse.name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="card-photo-img"
+              onError={() => {
+                setPhotoIndex((current) => (
+                  current + 1 < photoCandidates.length
+                    ? current + 1
+                    : photoCandidates.length
+                ))
+              }}
             />
           ) : (
             <div className="card-photo-placeholder">
