@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import type { Box } from '@/types/box'
+import type { RentalMode } from '@/types/rental'
 
 import { formatNumberRu } from '@/lib/format'
+import { getRentalModeConfig } from '@/lib/rentalModes'
 import { BITRIX_BASE, RENTAL_CATALOG_URL } from '@/lib/constants'
 
 const STATUS_LABEL: Record<Box['status'], string> = {
@@ -61,10 +63,11 @@ function BoxIcon() {
 interface Props {
   box: Box
   warehouseSlug: string
+  mode: RentalMode
   index: number
 }
 
-export function BoxCard({ box, warehouseSlug, index }: Props) {
+export function BoxCard({ box, warehouseSlug, mode, index }: Props) {
   const isAvailable = box.status === 'free'
   const isSoon = box.status === 'freeing_7' || box.status === 'freeing_14'
   const isBlocked = box.status === 'rented' || box.status === 'reserved'
@@ -73,6 +76,11 @@ export function BoxCard({ box, warehouseSlug, index }: Props) {
   const pricePerSqm = formatNumberRu(box.price_per_sqm)
 
   const rentUrl = `${RENTAL_CATALOG_URL}?box=${box.code_1c}`
+  const modeConfig = getRentalModeConfig(mode)
+  const displayTitle = box.box_number
+    ? `#${box.box_number}`
+    : (box.object_type ?? box.rent_type ?? modeConfig.itemLabel)
+  const detailHref = `/warehouses/${warehouseSlug}/boxes/${box.id}?mode=${mode}`
 
   return (
     <article
@@ -83,7 +91,7 @@ export function BoxCard({ box, warehouseSlug, index }: Props) {
       <div className="box-card-top">
         <div className="box-icon-wrap">
           <BoxIcon />
-          <span className="box-number">#{box.box_number}</span>
+          <span className="box-number">{displayTitle}</span>
         </div>
         <span
           className="box-status"
@@ -130,7 +138,7 @@ export function BoxCard({ box, warehouseSlug, index }: Props) {
       {/* Кнопки */}
       <div className="box-actions">
         <Link
-          href={`/warehouses/${warehouseSlug}/boxes/${box.id}`}
+          href={detailHref}
           className="box-btn-detail"
         >
           Подробнее

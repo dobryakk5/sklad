@@ -1,0 +1,1353 @@
+<?php
+
+namespace Enum;
+
+use Bitrix\Crm\EntityRequisite;
+use CIBlockElement;
+
+class Rest
+{
+    public static $urlToSite = 'https://alfasklad.ru/exchange/';
+    public static $stopHandlers = 0;
+    public static $iblockCatalog = 26;
+    public static $iblockContracts = 37;
+    public static $iblockTech = 38;
+
+    public static $sendToSite = false;
+
+    public static function GetKey()
+    {
+        return md5(date('d.m.Y') . 'alfasklad');
+    }
+
+    public static function OnRestServiceBuildDescription()
+    {
+        return array(
+            'Rest1CAndSite' => array(
+                'enum.addCompanyFromSite' => array(
+                    'callback' => array(__CLASS__, 'addCompanyFromSite'),
+                    'options' => array(),
+                ),
+                'enum.addDealFromSite' => array(
+                    'callback' => array(__CLASS__, 'addDealFromSite'),
+                    'options' => array(),
+                ),
+                'enum.payedDeal' => array(
+                    'callback' => array(__CLASS__, 'payedDeal'),
+                    'options' => array(),
+                ),
+                /***********************/
+                'enum.getOrderDeal' => array(
+                    'callback' => array(__CLASS__, 'getOrderDeal'),
+                    'options' => array(),
+                ),
+                'enum.updateOrderDeal' => array(
+                    'callback' => array(__CLASS__, 'updateOrderDeal'),
+                    'options' => array(),
+                ),
+                'enum.getCompany' => array(
+                    'callback' => array(__CLASS__, 'getCompany'),
+                    'options' => array(),
+                ),
+                'enum.updateCompany' => array(
+                    'callback' => array(__CLASS__, 'updateCompany'),
+                    'options' => array(),
+                ),
+                'enum.getContract' => array(
+                    'callback' => array(__CLASS__, 'getContract'),
+                    'options' => array(),
+                ),
+                'enum.updateContract' => array(
+                    'callback' => array(__CLASS__, 'updateContract'),
+                    'options' => array(),
+                ),
+
+            )
+        );
+    }
+    //Отправка данных на сайт
+    public static function techInfoblockAdd($id){
+        $el = new CIBlockElement;
+        $PROP = array();
+        $PROP[145] = $id;
+
+        $arLoadProductArray = Array(
+          "IBLOCK_SECTION_ID" => false,          // элемент лежит в корне раздела
+          "IBLOCK_ID"      => self::$iblockTech,
+          "PROPERTY_VALUES"=> $PROP,
+          "NAME"           => "Компания ".$id,
+          "ACTIVE"         => "Y",            // активен
+          );
+
+        $el->Add($arLoadProductArray);
+    }
+
+    //По запросу 1С отдаем договора которые не изменялись
+    public static function getContract($query, $n, \CRestServer $server)
+    {
+        $contracts = [];
+        $arFilter = Array("IBLOCK_ID"=>self::$iblockContracts/*'PROPERTY_UF_SENT_TO_1C' => '1'*/);
+        $res = CIBlockElement::GetList(Array(), $arFilter);
+        while ($ob = $res->GetNextElement()){
+            $arFields = $ob->GetFields();
+            $arProps = $ob->GetProperties();
+            $contracts[] = HelperRest::getContractMap($arFields,$arProps);
+            CIBlockElement::SetPropertyValuesEx($arFields['ID'], false, array('UF_SENT_TO_1C' => '1'));
+        }
+        if ($_REQUEST['get']) {
+            deb($contracts);
+            die();
+        }
+
+        return [
+            'Contracts' => $contracts,
+        ];
+    }
+
+    public static function updateContract($query, $n, \CRestServer $server){
+        file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/updateDocumentsFrom1C.txt",print_r($query,true), FILE_APPEND);
+        $updatedId = [];
+        $data = [];
+        if(count($query['result']['Doc'])>0){
+            foreach ($query['result']['Doc'] as $key => $value) {
+                $contractId = HelperRest::searchContractFrom1C($value, self::$iblockContracts);
+                if($contractId>0){
+                    $updatedId[] = HelperRest::updateContractFrom1C($contractId, $value, self::$iblockContracts);
+                }else{
+                    $updatedId[] = HelperRest::addContractFrom1C($value,self::$iblockContracts);
+                }
+                $data[] = $value;
+            }
+        }
+        //ОТПРАВЛЯЕМ НА САЙТ ТО ЧТО ПРИНЯЛИ ПО ДОКУМЕНТАМ
+        /*$url = self::$urlToSite;
+        $key = self::GetKey();
+
+        $param = [
+            'key' => $key,
+            'action' => 'addContract',
+            'dataDoc' => $data
+        ];
+        HelperRest::SendRequest($param, $url);*/
+        //ОТПРАВЛЯЕМ НА САЙТ ТО ЧТО ПРИНЯЛИ ПО ДОКУМЕНТАМ
+
+        return [
+            'Doc' => $updatedId,
+        ];
+    }
+
+    //по запросу из 1С отправляем компании новые
+    public static function getCompany($query, $n, \CRestServer $server)
+    {
+        $companies = [];
+        //собираем только те которые не были отправлены в 1С
+
+        if ($_REQUEST['all'] && $_REQUEST['all']=='y') {
+            $filter = [];
+        }elseif($_REQUEST['company_guid']){
+            $filter = [
+                //'!UF_SENT_TO_1C' => '1'
+                HelperRest::$fieldsCompany['GUID_COMPANY'] => $_REQUEST['company_guid']
+                //'ID' => '9238'
+            ];
+        }elseif($_REQUEST['company_id']){
+            $filter = [
+                //'!UF_SENT_TO_1C' => '1'
+                'ID' => $_REQUEST['company_id']
+                //'ID' => '9238'
+            ];
+        }else{
+            $filter = [
+                //'!UF_SENT_TO_1C' => '1'
+                'UF_SENT_TO_1C' => '0'
+                 //'ID' => '9238'
+            ];
+        }
+
+        $select = [
+            '*',
+            'UF_SENT_TO_1C'
+        ];
+        $res = \CCrmCompany::GetListEx([], $filter, false, false, $select);
+
+        while ($item = $res->Fetch()) {
+            $data = self::GetInfoForCompany($item['ID']);
+            Helper::setValueUserField('CRM_COMPANY', $item['ID'], 'UF_SENT_TO_1C', true);
+            $companies[] = $data;
+        }
+
+        if ($_REQUEST['get']) {
+            deb($companies);
+            die();
+        }
+
+        return [
+            'Companies' => $companies,
+        ];
+    }
+
+    //по запросу из 1С обновляем компанию
+    public static function updateCompany($query, $n, \CRestServer $server)
+    {
+        file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/updateCompanyesFrom1C.txt",print_r($query,true), FILE_APPEND);
+        $companies = [];
+        if(count($query['result']['Companies'])>0){
+             foreach ($query['result']['Companies'] as $key => $value) {
+                $companyId = HelperRest::searchCompanyFrom1C($value);
+                if($companyId>0){
+                    $companies[] = HelperRest::updateCompanyFrom1C($companyId, $value);
+                }else{
+                    $companies[] = HelperRest::addCompanyFrom1C($value);
+                }
+                //self::techInfoblockAdd($companyId);
+                //$companies[] = $companyId;
+            }
+        }
+
+        return [
+            'Companies' => $companies,
+        ];
+        //return $query;
+    }
+
+
+
+
+
+     public static function updateOrderDeal($query, $n, \CRestServer $server){
+        file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/updateDealsFrom1C.txt",print_r($query,true), FILE_APPEND);
+
+         file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/updateDealsFrom.txt",print_r($query,true), FILE_APPEND);
+        /*$Deals = [];
+
+        //Если по сделке есть ID в 1С
+        if($query['ID_CRM_DEAL']){
+            $arField['ID'] = $query['ID_CRM_DEAL'];
+            $arField['STAGE_ID'] = $query['STAGE_ID'];
+            $arField['DATE_CREATE'] = $query['DATE_CREATE'];
+            $arField['UF_CRM_1570715186012'] = $query['CODE_OF_SIZE'];
+            $arField['UF_CRM_1573560721790'] = $query['DISCOUNT_PERCENT'];
+            $arField['UF_CRM_1573560667781'] = $query['DISCOUNT_NAME'];
+            $arField['UF_CRM_1570715728147'] = $query['STATUS'];
+            $arField['UF_CRM_1570716582786'] = $query['COMMENT'];
+            $arField['UF_CRM_1570717010623'] = $query['EXTERNAL_CODE'];
+            $arField['UF_CRM_1570717395621'] = $query['ORDER_ID'];
+            $arField['UF_CRM_1565340795697'] = $query['DATE_BEGIN_OF_RENT'];
+            $arField['UF_CRM_1567412053'] = $query['DATE_END_OF_RENT'];
+
+            $arField['PRODUCTS'] = $query['PRODUCTS'];
+
+            foreach ($arField as $key => $value) {
+                if(!$value){
+                    unset($arField[$key]);
+                }
+            }
+
+            $filter = [
+                'ID' => $arField['ID'],
+            ];
+            $select = [
+                '*',
+                'UF_*'
+            ];
+            $dealData=[];
+            $deals = \CCrmDeal::GetListEx([], $filter, false, false, $select);
+            if ($deal = $deals->Fetch()) {
+                $dealData = $deal;
+            }
+
+            if($dealData['ID']){
+                //$CCrmDeal = new \CCrmDeal(false);
+                //$upRes = $CCrmDeal->Update($dealData['ID'], $arField);
+                if(count($arField['PRODUCTS'])>0){
+                    //$bSuccess = \CCrmDeal::SaveProductRows($dealData['ID'], $arField['PRODUCTS'] , false, false, false);
+                }
+            }
+            $Deals[]=$dealData;
+        }else{
+
+        }
+
+        if ($_REQUEST['get']) {
+            deb($Deals);
+            die();
+        }
+
+        return [
+            'Deals' => $Deals,
+        ];*/
+
+        $Deals=[];
+        if(count($query['result']['Deals'])>0){
+             foreach ($query['result']['Deals'] as $key => $value) {
+                $dealId = HelperRest::searchDealFrom1C($value);
+                if($dealId>0){
+                    $Deals[] = HelperRest::updateDealFrom1C($dealId, $value);
+                }else{
+                    $Deals[] = HelperRest::addDealFrom1C($value);
+                }
+            }
+        }
+        if ($_REQUEST['get']) {
+            deb($Deals);
+            die();
+        }
+
+        /*return [
+            'Deals' => $Deals,
+        ];*/
+        return $query;
+
+     }
+
+
+    //1С дергает вебхук, и мы отдаем массив сделок - задача https://b24.rdn-grp.ru/workgroups/group/172/tasks/task/view/5484/
+    public static function getOrderDeal($query, $n, \CRestServer $server)
+    {
+        if ($_REQUEST['all'] && $_REQUEST['all']=='y') {
+            $filter = [
+                'CATEGORY_ID' => 1,
+                'STAGE_ID' => 'C1:NEW'
+            ];
+        }else{
+            $filter = [
+                'CATEGORY_ID' => 1,
+                '!'.HelperRest::$fieldsDeal['SEND_TO_1C'] => 1,
+                'STAGE_ID' => 'C1:NEW'
+            ];
+        }
+
+        $select = [
+            '*',
+            'UF_*'
+        ];
+        $deals = \CCrmDeal::GetListEx([], $filter, false, false, $select);
+        $Deals = [];
+        while ($deal = $deals->Fetch()) {
+
+            Helper::setValueUserField('CRM_DEAL', $deal['ID'], HelperRest::$fieldsDeal['SEND_TO_1C'], 1);
+
+            $products = \CCrmDeal::LoadProductRows($deal['ID']);
+
+            if ($deal['COMPANY_ID']) {
+                //данные по компании
+                $dataCompany = self::GetInfoForCompany($deal['COMPANY_ID']);
+                $deal['COMPANY'] = $dataCompany;
+            }
+
+            foreach ($products as &$product) {
+                if ($product['PRODUCT_ID'] > 0) {
+                    $product_id = $product['PRODUCT_ID'];
+                    $code = 'RENT_TYPE';
+
+                    $p_filter = ['CODE' => $code];
+                    $f = ['ID' => $product_id];
+
+                    $elements = [];
+                    \CIBlockElement::GetPropertyValuesArray($elements, self::$iblockCatalog, $f, $p_filter);
+                    if (isset($elements[$product_id][$code]['VALUE'])) {
+                        $product['VIEW_RENT'] = $elements[$product_id][$code]['VALUE'];
+                    }
+
+
+                    $xml_id = HelperRest::getExternalCodeByProductID($product['PRODUCT_ID']);
+                    $product['XML_ID'] = $xml_id;
+                }
+            }
+
+            $deal['PRODUCTS'] = $products;
+
+            $Deals[] = $deal;
+
+        }
+
+        //заменяем коды на понятные для 1C и убираем лишние поля
+        $Deals = HelperRest::mapDeal($Deals);
+
+        //находим счета по сделкам
+        HelperRest::GetInvoicesByDeal($Deals);
+
+        if ($_REQUEST['get']) {
+            deb($Deals);
+            die();
+        }
+
+        file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/getDealsFor1C.txt",print_r($Deals,true), FILE_APPEND);
+
+        return [
+            'Deals' => $Deals,
+        ];
+    }
+
+    //создание сделки при создании заказа на стороне сайта
+    public static function addDealFromSite($query, $n, \CRestServer $server)
+    {
+        $log_file = '/logs/addDealFromSite.txt';
+        $log = [];
+        $log[] = $query;
+
+        if (!isset($query['ORDER']))
+            return false;
+
+        $CCrmContact = new \CCrmContact(false);
+
+        $order = $query['ORDER'];
+        $user = $query['USER'];
+
+        //по складу определим ответственного
+        if ($order['EXTERNAL_ID_SECTION'] != '') {
+            $skladArr = HelperRest::getAssignedBySklad($order['EXTERNAL_ID_SECTION']);
+            $assigned_id = $skladArr['USER_ID'];
+            $sklad_id = $skladArr['ID'];
+            $user['ASSIGNED_BY_ID'] = $assigned_id;
+        }
+
+        if (!$sklad_id) {
+            $log[] = [
+                'msg' => "Ошибка при определении ответственного по складу",
+                'EXTERNAL_ID_SECTION' => $order['EXTERNAL_ID_SECTION'],
+            ];
+            Helper::log($log_file, $log);
+
+            $sklad_id = 337;
+        }
+
+
+        $DELIVERY_ID = HelperRest::getDeliveryByID($order['DELIVERY']);
+        $PAYMENT_ID = HelperRest::getPaymentByID($order['PAYMENT']);
+
+        //создаем компанию
+        $id_company = HelperRest::addCompanyFromSite($user);
+
+        //контакты которые будем биндить к сделке
+        $bindingContact = [];
+
+        $contacts = [];
+        //нормализуем телефон
+        if($user['PHONE']) {
+            $user['PHONE'] = \CVoxImplantPhone::Normalize($user['PHONE']);
+            $contacts = Helper::getContactByPhone($user['PHONE']);
+        }
+
+        //телефон есть в Контактах - крепим текущий контакт, проверяем совпадение по email, если нет, то добавляем
+        //телефона нет в CRM - создаем новый контакт, email в email, на сайте - новый пользователь
+
+        if (count($contacts) > 0) {
+            $bindingContact = array_shift($contacts);
+            $log[] = ['msg' => 'Нашли контакт по телефону: ' . $user['PHONE'] . ' ' . $bindingContact];
+            //если нашли контакт по номеру то надо бы добавить почту если еще такой нет
+            if ($user['EMAIL'])
+                Helper::addEmail($bindingContact, \CCrmOwnerType::ContactName, $user['EMAIL']);
+
+            //достанем все компании привязанные к контакту
+            $companyIds = \Bitrix\Crm\Binding\ContactCompanyTable::getContactCompanyIDs($bindingContact);
+            $companyIds[] = $id_company;
+            $companyIds = array_unique($companyIds);
+            $fieldsContact['COMPANY_IDS'] = $companyIds;
+            $fieldsContact['SYSTEM'] = 'Y';
+            $CCrmContact->Update($bindingContact, $fieldsContact, false, false, ['DISABLE_USER_FIELD_CHECK' => true]);
+
+            //COMPANY_IDS
+        } else {
+            $log[] = ['msg' => 'Создаем контакт'];
+
+            $phone = \CVoxImplantPhone::Normalize($user['PHONE']);
+
+            $fieldsContact = [
+                'POST' => '',
+                'SOURCE_ID' => 'STORE',
+                'ASSIGNED_BY_ID' => $user['ASSIGNED_BY_ID'],
+                'FM' => [
+                    'EMAIL' => [
+                        'n1' => [
+                            'VALUE' => $user['EMAIL'],
+                            'VALUE_TYPE' => 'WORK'
+                        ]
+                    ],
+                    'PHONE' => [
+                        'n1' => [
+                            'VALUE' => $phone,
+                            'VALUE_TYPE' => 'WORK'
+                        ]
+                    ],
+                ],
+                'NAME' => $user['NAME'],
+                'LAST_NAME' => $user['LAST_NAME'],
+                'SECOND_NAME' => $user['SECOND_NAME'],
+                'COMPANY_ID' => $id_company,
+                //FIO_IN_COMPANY
+            ];
+            if (!empty($query['UTM'])) {
+                                                        $fieldsContact = array_merge($fieldsContact, $query['UTM']);
+                                                }
+            if (HelperRest::isFis($user)) {
+                $fieldsContact['NAME'] = $user['NAME'];
+                $fieldsContact['LAST_NAME'] = $user['LAST_NAME'];
+                $fieldsContact['SECOND_NAME'] = $user['SECOND_NAME'];
+            }
+            if (HelperRest::isJur($user)) {
+                $fieldsContact['NAME'] = $user['FIO_IN_COMPANY'];
+                $fieldsContact['LAST_NAME'] = $user['FIO_IN_COMPANY'];
+            }
+
+            if (!$bindingContact = $CCrmContact->Add($fieldsContact, false, ['DISABLE_USER_FIELD_CHECK' => true])) {
+                $log[] = ['msg' => 'При создании контакта ошибка: ' . $CCrmContact->LAST_ERROR];
+            } else {
+                $log[] = ['msg' => 'Создали контакт', "arr" => $fieldsContact];
+            }
+        }
+
+        //проверим есть ли такая сделка в системе
+        if (!$id_deal_add = HelperRest::getDealByOrderId($order['ORDER_ID'])) {
+
+            $productBox = false;
+            $discount_name = [];
+            $discount = [];
+
+            foreach ($order['PRODUCTS'] as $productInOrder) {
+
+                //находим аренду бокса
+                if ($productInOrder['IS_ARENDA_BOX'] == 'Y') {
+                    $productBox = $productInOrder;
+                }
+
+                //перебираем все примененные скидки
+                $itemDiscount = 0;
+                while (1) {
+                    if (isset($productInOrder['PROP']['DISCOUNT_' . $itemDiscount . '_NAME'])) {
+                        $discount_name[] = $productInOrder['PROP']['DISCOUNT_' . $itemDiscount . '_NAME']['VALUE'];
+                        $discount[] = $productInOrder['PROP']['DISCOUNT_' . $itemDiscount . '_VALUE']['VALUE'];
+                    } else {
+                        break;
+                    }
+                    $itemDiscount++;
+                }
+            }
+            $stageId = 'PREPAYMENT_INVOICE';
+            if(!$user['DEAL_CATEGORY_ID']){
+                $user['DEAL_CATEGORY_ID'] = 0;
+
+            }else{
+                $stageId = 'C'.$user['DEAL_CATEGORY_ID'].':NEW';
+            }
+            $CCrmDeal = new \CCrmDeal(false);
+            $arFields = [
+                'CONTACT_ID' => $bindingContact,
+                'CATEGORY_ID' => $user['DEAL_CATEGORY_ID'],//Направление сделки
+                'STAGE_ID' => $stageId,//Счет не оплачен
+                'TITLE' => 'Заказ клиента с Сайта #' . $order['ORDER_ID'],
+                'DATE_CREATE' => $order['DATE_CREATE'],
+                'ASSIGNED_BY_ID' => $assigned_id,
+                'CREATED_BY' => $assigned_id,
+                //'OPPORTUNITY' => $order['PRICE'],
+                'COMPANY_ID' => $id_company,
+                'SOURCE_ID' => 'STORE',//Источник - сайта инет магаз
+                HelperRest::$fieldsDeal['Процент скидки'] => implode('#', $discount),
+                HelperRest::$fieldsDeal['Название скидки'] => implode('#', $discount_name),
+                HelperRest::$fieldsDeal['Доставка'] => $DELIVERY_ID,
+                HelperRest::$fieldsDeal['Оплата'] => $PAYMENT_ID,
+                HelperRest::$fieldsDeal['Склад'] => $sklad_id,
+                HelperRest::$fieldsDeal['ID_сайта'] => $order['ID_SITE'],
+                HelperRest::$fieldsDeal['ID_CRM'] => $order['ID_CRM'],
+                HelperRest::$fieldsDeal['ID Заказа'] => $order['ORDER_ID'],
+                HelperRest::$fieldsDeal['Комментарий'] => $order['COMMENT'],
+                HelperRest::$fieldsDeal['Номер договора'] => '',
+                HelperRest::$fieldsDeal['ID пользователя'] => $user['ID'],
+                HelperRest::$fieldsDeal['Дата начала аренды'] => $productBox ? $productBox['PROP']['DATE_START']['VALUE'] : '',
+                HelperRest::$fieldsDeal['Дата окончания аренды'] => $productBox ? $productBox['PROP']['DATE_END']['VALUE'] : '',
+                HelperRest::$fieldsDeal['Бронирование'] => '243',
+                //HelperRest::$fieldsDeal['Вид аренды'] => $user['ID'],
+
+                //self::$fieldsDeal['срок действия скидки'] => $order[''],
+                //self::$fieldsDeal['Дата начала аренды'] => $order[''],
+                //self::$fieldsDeal['Дата окончания аренды'] => $order[''],
+            ];
+
+            //тут надо по внешнему коду товара получить id Товара в Б24 и прикрепить его к заказу
+
+            foreach ($order['PRODUCTS'] as $keyProd => $product) {
+                $product_id = HelperRest::getProductByID($product['EXTERNAL_CODE']);
+                if ($product['IS_ARENDA_BOX'] == 'Y') {
+                    $product['PRICE_BASE_BASE'] = $product['PRICE_BASE'];
+                    if ($product['DISCOUNT_INFO']['VALUE_TYPE'] == 'P' && $product['DISCOUNT_INFO']['VALUE'] > 0)
+                    {
+                        $product['PRICE_BASE'] = round($product['PRICE_BASE']*(1-($product['DISCOUNT_INFO']['VALUE']/100)));
+                    }
+                    elseif ($product['DISCOUNT_INFO']['VALUE'] > 0)
+                    {
+                        $product['PRICE_BASE'] = round($product['PRICE_BASE']-$product['DISCOUNT_INFO']['VALUE']);
+                    }
+                    $r = [
+                        'PRODUCT_ID' => $product_id,
+                        //'PRODUCT_NAME' => $product['NAME'],
+                        //'DISCOUNT_SUM' => $product['DISCOUNT'],
+                        'QUANTITY' => $product['PROP']['ORDER_MONTH_COUNT']['VALUE'],
+                        //'PRICE' => $product['PRICE_TOTAL'] / $product['PROP']['ORDER_MONTH_COUNT']['VALUE'],
+                        'PRICE_EXCLUSIVE' => $product['PRICE_BASE'],
+                        'PRICE' => $product['PRICE_BASE_BASE'],
+                        'PRICE_BRUTTO' => $product['PRICE_BASE_BASE'],
+                        'PRICE_NETTO' => $product['PRICE_BASE_BASE'],
+                        'CUSTOMIZED' => 'Y',
+                        'MEASURE_CODE' => '977',
+                        'MEASURE_NAME' => 'мес.',
+                        //'CUSTOMIZED' => 'Y',
+                        //'DISCOUNT_TYPE_ID' => ($product['DISCOUNT_INFO']['VALUE_TYPE'] == 'P')? \Bitrix\Crm\Discount::PERCENTAGE : \Bitrix\Crm\Discount::MONETARY,
+                        //'DISCOUNT_RATE' => $product['DISCOUNT_INFO']['VALUE']
+                        //'PROP' => $product['PROP']['ORDER_MONTH_COUNT']['VALUE'],
+                        //'EXTERNAL_CODE' => $product['EXTERNAL_CODE'],
+                        /*'VAT_INCLUDED' => 'N',
+                        'VAT_RATE' => 0,
+                        //'CUSTOMIZED' => 'Y'
+                        */
+                    ];
+                    
+                    if ($product['DISCOUNT_INFO']['VALUE'] > 0)
+                    {
+                        $r['DISCOUNT_TYPE_ID'] = ($product['DISCOUNT_INFO']['VALUE_TYPE'] == 'P')? \Bitrix\Crm\Discount::PERCENTAGE : \Bitrix\Crm\Discount::MONETARY;
+                        $r['DISCOUNT_RATE'] = $product['DISCOUNT_INFO']['VALUE'];
+                    }
+                    $PRODUCT_ROWS[] = $r;
+                    $arFields[HelperRest::$fieldsDeal['Скидка']] = $product['DISCOUNT'];
+
+                }
+                elseif($product_id>0){
+                    $depositID = 19257;
+                    $insuranceID = 19317;
+                    if ($product_id == $depositID || $insuranceID)
+                    {
+                        $product['PRICE_TOTAL'] = 0;
+                    }
+                    $PRODUCT_ROWS[] = [
+                        'PRODUCT_ID' => $product_id,
+                        //'PRODUCT_NAME' => $product['NAME'],
+                        //'DISCOUNT_SUM' => $product['DISCOUNT'],
+                        'QUANTITY' => $product['COUNT'],
+                        'PRICE' => $product['PRICE_TOTAL'],
+                        'MEASURE_CODE' => '977',
+                        'MEASURE_NAME' => 'мес.',
+                        'CUSTOMIZED' => 'Y',
+                        'PRICE_BRUTTO' => $product['PRICE_TOTAL'],
+                        'PRICE_NETTO' => $product['PRICE_TOTAL'],
+                        'SORT' => ($keyProd+10),
+                        //'DISCOUNT_TYPE_ID' => \Bitrix\Crm\Discount::UNDEFINED
+                        //'PROP' => $product['PROP']['ORDER_MONTH_COUNT']['VALUE'],
+                        //'EXTERNAL_CODE' => $product['EXTERNAL_CODE'],
+                        /*'VAT_INCLUDED' => 'N',
+                        'VAT_RATE' => 0,
+                        //'CUSTOMIZED' => 'Y'
+                        */
+                    ];
+                }
+                else {
+                    $PRODUCT_ROWS[] = [
+                        'PRODUCT_NAME' => $product['NAME'],
+                        'ORIGINAL_PRODUCT_NAME' => $product['NAME'],
+                        //'DISCOUNT_SUM' => $product['DISCOUNT_SUM'],
+                        'QUANTITY' => $product['COUNT'],
+                        'PRICE' => $product['PRICE_TOTAL'],
+                        'MEASURE_CODE' => '796',
+                        'MEASURE_NAME' => 'шт.',
+                        'CUSTOMIZED' => 'Y',
+                        'PRICE_BRUTTO' => $product['PRICE_TOTAL'],
+                        'PRICE_NETTO' => $product['PRICE_TOTAL'],
+                        'SORT' => ($keyProd+10),
+                        //'DISCOUNT_PRICE' => $product['DISCOUNT'],
+                        //'PROP' => $product['PROP']['ORDER_MONTH_COUNT']['VALUE'],
+                        //'EXTERNAL_CODE' => $product['EXTERNAL_CODE'],
+                        'VAT_INCLUDED' => 'N',
+                        'VAT_RATE' => 0,
+                        'DISCOUNT_PRICE' => 0,
+                    ];
+                }
+
+
+            }
+
+            $arFields['SYSTEM'] = 'Y';
+            if (!empty($query['UTM'])) {
+                                                        $arFields = array_merge($arFields, $query['UTM']);
+                                                }
+                                                if (!empty($query['requestId'])) {
+                                                        $arFields['UF_CRM_1575990973013'] = $query['requestId'];
+                                                }
+
+            self::$stopHandlers = 1;
+            $id_deal_add = $CCrmDeal->Add($arFields, false, ['DISABLE_USER_FIELD_CHECK' => true]);
+
+            if (!$id_deal_add) {
+                $log[] = [
+                    'msg' => $CCrmDeal->LAST_ERROR
+                ];
+            } else {
+                updateSourceDeal($id_deal_add);
+                $log[] = [
+                    'msg' => 'Создали сделку',
+                    'id_deal' => $id_deal_add,
+                    'arFields' => $arFields,
+                    'PRODUCT_ROWS' => $PRODUCT_ROWS,
+                ];
+                //$products = \CAllCrmDeal::LoadProductRows($id_deal_add);
+                $bSuccess = \CCrmDeal::SaveProductRows($id_deal_add, $PRODUCT_ROWS, true, true, true);
+                if ($bSuccess) {
+
+                } else {
+                    $log[] = [
+                        'msg' => 'Ошибка при добавлении товаров в сделку',
+                        'id_deal' => $id_deal_add,
+                    ];
+                }
+                \CBPDocument::StartWorkflow(
+                        119,
+                        array("bizproc","CCrmDocumentDeal",'DEAL_'.$id_deal_add),
+                        array(),
+                        $arErrorsTmp
+                  );
+                \CBPDocument::StartWorkflow(
+                        10,
+                        array("bizproc","CCrmDocumentDeal",'DEAL_'.$id_deal_add),
+                        array(),
+                        $arErrorsTmp
+                  );
+            }
+        } else {//сделка существует
+            $log[] = [
+                'msg' => 'Сделка уже есть в системе',
+                'id_deal' => $id_deal_add
+            ];
+        }
+
+        Helper::log($log_file, $log);
+        Helper::log($log_file, '########################################################################################');
+    }
+
+    //срабатывает при оплате заказа на стороне сайта
+    public static function payedDeal($query, $n, \CRestServer $server)
+    {
+
+        $log_file = '/logs/payedOrder.txt';
+
+        $result = [];
+
+        $CCrmDeal = new \CCrmDeal(false);
+
+        if (!$query['ORDER_ID'])
+            return false;
+
+        if ($id_deal = HelperRest::getDealByOrderId($query['ORDER_ID'])) {
+
+            $filter = [
+                'ID' => $id_deal,
+            ];
+            $select = [
+                'STAGE_ID',
+            ];
+            $dealData = \CCrmDeal::GetListEx([], $filter, false, false, $select)->Fetch();
+
+            $arFields['STAGE_ID'] = 'WON';
+            $dataFalse = 1;
+
+            $pos = strpos($dealData['STAGE_ID'], 'C3');
+            if ($pos !== false) {
+                $arFields['STAGE_ID'] = 'C3:WON';
+                $dataFalse = 0;
+            }
+
+            $pos2 = strpos($dealData['STAGE_ID'], 'C4');
+            if ($pos2 !== false) {
+                $arFields['STAGE_ID'] = 'C4:WON';
+                $dataFalse = 0;
+            }
+
+
+            $arFields[HelperRest::$fieldsDeal['Оплачено с сайта']] = 1;
+            $CCrmDeal->Update($id_deal, $arFields, true, true,
+                [
+                    'DISABLE_USER_FIELD_CHECK' => true,
+                    'REGISTER_SONET_EVENT' => true,
+                    'ENABLE_WORKFLOW_CHECK' => true,
+                    'ENABLE_SYSTEM_EVENTS' => true,
+                    'SYNCHRONIZE_STAGE_SEMANTICS' => true,
+                ]
+            );
+            if ($CCrmDeal->LAST_ERROR != '') {
+                $log = [
+                    'msg' => 'Error set status WON: ' . $CCrmDeal->LAST_ERROR,
+                    'ID' => $query['ORDER_ID'],
+                    'id_deal' => $id_deal,
+                ];
+            } else {
+
+                if($dataFalse==1) {
+                    \CModule::IncludeModule('bizproc');
+                    $arBizProcWorkflowId = \CBPDocument::StartWorkflow(
+                        27,
+                        array('crm', 'CCrmDocumentDeal', 'DEAL_' . $id_deal),
+                        [],
+                        $arErrorsTmp
+                    );
+                }
+
+                $log = [
+                    'msg' => 'Order payed. Set status '.$arFields['STAGE_ID'],
+                    'ID' => $query['ORDER_ID'],
+                    'id_deal' => $id_deal,
+                ];
+            }
+
+
+            Helper::log($log_file, $log);
+            Helper::log($log_file, '##############################################################################');
+            $result = $log;
+        } else {
+            $result['msg'] = 'Order ' . $query['ORDER_ID'] . ' not found!';
+            Helper::log($log_file, $result);
+        }
+
+        return $result;
+    }
+
+    //при изменении реквизитов
+    public static function OnAfterRequisiteUpdateHandler($id, $fields)
+    {
+        $entity = EntityRequisite::getOwnerEntityById($id);
+        $arFields = ['ID' => $entity];
+        self::OnAfterCrmCompanyAddHandler($arFields);
+    }
+
+    //ОТПРАВКА КОМПАНИЙ НА САЙТ ЧЕРЕЗ ИНФОБЛОК. ЕМЕИЛ И ТЕЛЕФОН ДОБАВЛЯЮТСЯ В КОМПАНИЮ ПОСЛЕ ДОБАВЛЕНИЯ
+    //КОМПАНИИ. СООТВЕТСТВЕННО В СОБЫТИИ "ПОСЛЕ СОЗДАНИЯ КОМПАНИИ" НЕТ ЭТИХ ДАННЫХ. ПРИШЛОСЬ ШАГАТЬ ЧЕРЕЗ ИНФОБЛОК
+    public static function OnAfterIBlockElementAddHandler(&$arFields){
+        /*if($arFields['IBLOCK_ID']==self::$iblockTech){
+            $data['ID'] = $arFields['PROPERTY_VALUES']['145']; //Тут хранится ID компании в инфоблоке
+            self::OnAfterCrmCompanyAddHandler($data);
+        }*/
+        if($arFields['IBLOCK_ID']==self::$iblockContracts){
+            self::SendContractToSite($arFields['ID']);
+        }
+    }
+
+    public static function OnAfterCrmCompanyAddHandler($arFields)
+    {
+        $url = self::$urlToSite;
+        $key = self::GetKey();
+
+        $data = self::GetInfoForCompany($arFields['ID']);
+
+        $param = [
+            'key' => $key,
+            'action' => 'addcontact',
+            'dataCompany' => $data
+        ];
+        //HelperRest::SendRequest($param, $url);
+
+        $resutlOrderSend = HelperRest::SendRequest($param, $url);
+        $resutlOrderSend = json_decode($resutlOrderSend,true);
+        if($resutlOrderSend['USER_ID']) {
+            Helper::setValueUserField('CRM_COMPANY', $arFields['ID'], HelperRest::$fieldsCompany['ID_SITE_COMPANY'], $resutlOrderSend['USER_ID']);
+        }
+    }
+
+
+    public static function OnAfterCrmCompanyUpdateHandler($arFields)
+    {   /// testing ! 15.07.2021
+        $url = self::$urlToSite;
+        $key = self::GetKey();
+
+        $data = self::GetInfoForCompany($arFields['ID']);
+
+        $param = [
+            'key' => $key,
+            'action' => 'updateContact',
+            'dataCompany' => $data
+        ];
+        //HelperRest::SendRequest($param, $url);
+
+        $resutlOrderSend = HelperRest::SendRequest($param, $url);
+        /*$resutlOrderSend = json_decode($resutlOrderSend,true);
+        if($resutlOrderSend['USER_ID']) {
+            Helper::setValueUserField('CRM_COMPANY', $arFields['ID'], HelperRest::$fieldsCompany['ID_SITE_COMPANY'], $resutlOrderSend['USER_ID']);
+        }*/
+    }
+
+
+
+    //получить массив с информацией для компании
+    public static function GetInfoForCompany($id_company)
+    {
+
+        if (!$id_company)
+            return false;
+
+        $arSelect = [
+            '*',
+            'UF_*',
+        ];
+        $filter = [
+            'ID' => $id_company
+        ];
+
+        $emails = Helper::getEmails($id_company, \CCrmOwnerType::CompanyName);
+        $email = array_shift($emails);
+
+        $phones = Helper::getPhones($id_company, \CCrmOwnerType::CompanyName);
+        $phone = array_shift($phones);
+
+        $dbRes = \CCrmCompany::GetListEx([], $filter, false, false, $arSelect);
+        if ($arFields = $dbRes->Fetch()) {
+   switch ($arFields['UF_CRM_1566814003549'])
+        {
+            case 94:
+                $p = 1;
+                break;
+            case 95:
+                $p = 2;
+                break;
+            case 96:
+                $p = 3;
+                break;            
+            default :
+                $p = 2;
+                break;
+        }
+        //AddMessage2Log(print_r($arFields,true), "test_rdn arFields");
+            $data = [
+                'PROFILE_TYPE' => $p,//физ или юр лицо или ИП
+                'TITLE' => $arFields['TITLE'],//название компании
+                'LAST_NAME' => $arFields[HelperRest::$fieldsCompany['Фамилия']],
+                'NAME' => $arFields[HelperRest::$fieldsCompany['Имя']],
+                'SECOND_NAME' => $arFields[HelperRest::$fieldsCompany['Отчество']],
+                'PHONE' => \CVoxImplantPhone::Normalize($phone),
+                'PHONES' => $phones,
+                'EMAIL' => $email,
+                'EMAILS' => $emails,
+                //'SOURCE'=>'', //ИСТОЧНИК
+                'ASSIGNED_BY_ID'=> $arFields[HelperRest::$fieldsCompany['Ответственное лицо']], //Ответственное лицо
+                'ASSIGNED_BY_ID_VALUE'=> Helper::getUserById($arFields[HelperRest::$fieldsCompany['Ответственное лицо']]), //Ответственное лицо
+                'PROFILE' => [
+                    'HOW_FIND_ID'=> $arFields[HelperRest::$fieldsCompany['Как о нас узнали']],
+                    'HOW_FIND_VALUE'=> HelperRest::getCrmListValueById($arFields[HelperRest::$fieldsCompany['Как о нас узнали']]),
+                    'HOW_FIND_COMMENTS'=> $arFields[HelperRest::$fieldsCompany['Комментарий к Как о нас узнали?']],
+                    'WHY_NEED_ID'=> $arFields[HelperRest::$fieldsCompany['Зачем нужен Альфасклад?']],
+                    'WHY_NEED_VALUE'=> HelperRest::getCrmListValueById($arFields[HelperRest::$fieldsCompany['Зачем нужен Альфасклад?']]),
+                    'WHY_NEED_COMMENTS'=> $arFields[HelperRest::$fieldsCompany['Комментарий к Зачем нужен Альфасклад?']],
+                    'FIRST_CONTACT'=> $arFields[HelperRest::$fieldsCompany['Первичный контакт с клиентом']],
+                    'FIRST_CONTACT_EMAIL'=> Helper::getUserById($arFields[HelperRest::$fieldsCompany['Первичный контакт с клиентом']])['EMAIL'],
+                    'GENDER'=> $arFields[HelperRest::$fieldsCompany['Пол']],
+                    'GET_SMS'=> $arFields[HelperRest::$fieldsCompany['Получать СМС рассылку']],
+                    'GET_EMAILS'=> $arFields[HelperRest::$fieldsCompany['Получать почтовую рассылку']],
+                    'PURPOSE' => $arFields[HelperRest::$fieldsCompany['Цель бокса']],
+                    'TRANSPORTATION' => $arFields[HelperRest::$fieldsCompany['Требуется ли перевозка?']],
+                ],
+                'GUID_COMPANY' => $arFields[HelperRest::$fieldsCompany['GUID_COMPANY']], //ГУИД КОНТРАГЕНТА
+                'GUID_INVOICES' => $arFields[HelperRest::$fieldsCompany['GUID_INVOICES']], //ГУИД СЧЕТОВ
+                'GUID_CONTRACTS' => $arFields[HelperRest::$fieldsCompany['GUID_CONTRACTS']], //ГУИД ДОКУМЕНТОВ
+                'ID_CRM_COMPANY' => $arFields['ID'],
+                'ID_SITE_COMPANY' => $arFields[HelperRest::$fieldsCompany['ID_SITE']],
+                'COMMENTS' => $arFields['COMMENTS'],//str_replace("<br><br>", "", $arFields['COMMENTS']),
+                'COMMENTS_1C' => $arFields[HelperRest::$fieldsCompany['Комментарий из 1С']],//str_replace("<br><br>", "", $arFields['Комментарий из 1С']),
+                'DATE_BIRTH' => $arFields[HelperRest::$fieldsCompany['Дата рождения']],
+                'COMPANY_BALANCE' => $arFields[HelperRest::$fieldsCompany['Баланс по контрагенту']],
+                'STOCK_ID' => $arFields[HelperRest::$fieldsCompany['STOCK_ID']],
+            ];
+
+            $requisites = Helper::getAllRequisite($id_company);
+
+            //достаем первый реквизит
+            if (count($requisites) > 0) {
+                $requisites = array_shift($requisites);
+                //$data['SECOND_NAME'] = $requisites['RQ_SECOND_NAME'];
+                //$data['LAST_NAME'] = $requisites['RQ_LAST_NAME'];
+                //$data['NAME'] = $requisites['RQ_FIRST_NAME'];
+                $data['PASSPORT_SERIES'] = $requisites['RQ_IDENT_DOC_SER'];
+                $data['PASSPORT_NUMBER'] = $requisites['RQ_IDENT_DOC_NUM'];
+                $data['INN'] = $requisites['RQ_INN'];
+                $data['KPP'] = $requisites['RQ_KPP'];
+
+                $data['ADDRESS_ACTUAL'] = $requisites['ADDR'][1]['ADDRESS_1'];
+                $data['ADDRESS_REGISTRATION'] = $requisites['ADDR'][4]['ADDRESS_1'];
+
+                unset($requisites['DATE_CREATE']);
+                $data['REQUSITES'] = $requisites;
+            }
+        }
+
+        return $data;
+    }
+
+    //при создании новой сделки в статусе "Сбор данных договора" или "Договор заключен" - отправляем ее на сайт как новый заказ
+    public static function OnAfterCrmDealAddHandler($arFields)
+    {
+        /*file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/1_DEAL.txt",print_r($arFields,true), FILE_APPEND);
+        if ($arFields['SYSTEM'] == 'Y')
+            return true;*/
+
+        if (self::$stopHandlers == 1)
+            return true;
+
+        if (in_array($arFields['STAGE_ID'], ['PREPAYMENT_INVOICE', 'WON'])) {
+            self::SendDealToSite($arFields['ID']);
+        }
+        if (in_array($arFields['STAGE_ID'], ['C1:NEW', 'C1:WON'])) {
+            self::SendDealToSite($arFields['ID']);
+        }
+
+    }
+
+    //если перевели в статус "Сбор данных договора" или "Договор заключен" - отправляем ее на сайт как новый заказ
+    public static function OnAfterCrmDealUpdateHandler($arFields)
+    {
+        /*Helper::setValueUserField('CRM_DEAL', $arFields['ID'], HelperRest::$fieldsDeal['SEND_TO_1C'], 0);
+        if ($arFields['SYSTEM'] == 'Y')
+            return true;*/
+
+        if (self::$stopHandlers == 1)
+            return true;
+
+        //if (self::$sendToSite) {
+            if (in_array($arFields['STAGE_ID'], ['PREPAYMENT_INVOICE', 'WON'])){
+                self::SendDealToSite($arFields['ID']);
+            }
+
+        if (in_array($arFields['STAGE_ID'], ['C1:NEW', 'C1:WON'])) {
+                self::SendDealToSite($arFields['ID']);
+            }
+        //}
+    }
+
+    //если статус сделки до обновения не равен на тот котоырй меняем и он "Сбор данных договора" или "Договор заключен" - то установим флаг что
+    // надо бы отправить сделку на сайт
+    public static function OnBeforeCrmDealUpdateHandler($arFields)
+    {
+        /*if ($arFields['SYSTEM'] == 'Y')
+            return true;*/
+
+        //сделка до изменения
+        if($arFields['ID']){
+            Helper::setValueUserField('CRM_DEAL', $arFields['ID'], HelperRest::$fieldsDeal['SEND_TO_1C'], false);
+        }
+
+        $deal = \CCrmDeal::GetByID($arFields['ID']);
+        //$arFields - сделка после изменения
+
+        if ((in_array($arFields['STAGE_ID'], ['PREPAYMENT_INVOICE', 'WON']) && $deal['STAGE_ID'] != $arFields['STAGE_ID']) || (in_array($arFields['STAGE_ID'], ['C1:NEW', 'C1:WON']) && $deal['STAGE_ID'] != $arFields['STAGE_ID'])) {
+            self::$sendToSite = true;
+        } else {
+            self::$sendToSite = false;
+        }
+    }
+
+    //отправляем сделку на сайт
+    public function SendDealToSite($id_deal)
+    {
+
+        $log_file = '/logs/sendDealToSite.txt';
+
+        $url = self::$urlToSite;
+        $key = self::GetKey();
+
+        $filter = [
+            'ID' => $id_deal,
+        ];
+
+        $select = [
+            '*',
+            'UF_*'
+        ];
+        $deal = \CCrmDeal::GetListEx([], $filter, false, false, $select)->Fetch();
+
+        unset($deal['DATE_MODIFY']);
+        unset($deal['~DATE_MODIFY']);
+
+        $id_company = $deal['COMPANY_ID'];
+
+        if (!$id_company) {
+            $result['msg'] = 'Company in deal ' . $id_deal . ' not found!';
+            Helper::log($log_file, $result);
+            return true;
+        }
+
+        //данные по компании
+        $data = self::GetInfoForCompany($id_company);
+
+        //соберем данные по сделке
+        $fieldsDeal = [
+            'Доставка' => $deal[HelperRest::$fieldsDeal['Доставка']],
+            'Оплата' => $deal[HelperRest::$fieldsDeal['Оплата']],
+            'Склад' => $deal[HelperRest::$fieldsDeal['Склад']],
+            'Оплачено с сайта' => $deal[HelperRest::$fieldsDeal['Оплачено с сайта']],
+            'Номер договора' => $deal[HelperRest::$fieldsDeal['Номер договора']],
+            'ID пользователя' => $deal[HelperRest::$fieldsDeal['ID пользователя']],
+            'Код размера' => $deal[HelperRest::$fieldsDeal['Код размера']],
+            'Скидка' => $deal[HelperRest::$fieldsDeal['Скидка']],
+            'Дата создания' => $deal[HelperRest::$fieldsDeal['Дата создания']],
+            'Вид аренды' => $deal[HelperRest::$fieldsDeal['Вид аренды']],
+            'Комментарий' => $deal[HelperRest::$fieldsDeal['Комментарий']],
+            'ID_сайта' => $deal[HelperRest::$fieldsDeal['ID_сайта']],
+            'ID_CRM' => $deal[HelperRest::$fieldsDeal['ID_CRM']],
+            'Внешний код' => $deal[HelperRest::$fieldsDeal['Внешний код']],
+            'ID Заказа' => $deal[HelperRest::$fieldsDeal['ID Заказа']],
+            'Дата начала аренды' => $deal[HelperRest::$fieldsDeal['Дата начала аренды']],
+            'Дата окончания аренды' => $deal[HelperRest::$fieldsDeal['Дата окончания аренды']],
+            'Статус Бокса XML_ID' => $deal[HelperRest::$fieldsDeal['Статус Бокса XML_ID']],
+        ];
+
+        $fieldsDeal['PRODUCTS'] = \CAllCrmDeal::LoadProductRows($deal['ID']);
+
+        foreach ($fieldsDeal['PRODUCTS'] as &$pr) {
+            $xml_id = HelperRest::getExternalCodeByProductID($pr['PRODUCT_ID']);
+            $pr['XML_ID'] = $xml_id;
+        }
+
+        $param = [
+            'key' => $key,
+            'action' => 'addOrder',
+            'dataCompany' => $data,
+            'order' => $fieldsDeal
+        ];
+
+        /*if ($deal['ID'] == 1968) {
+            deb($param);
+            die();
+        }*/
+
+        //Helper::log($log_file, $param);
+        //Helper::log($log_file, '#####################################################################');
+
+        //return HelperRest::SendRequest($param, $url);
+
+        $resutlOrderSend = HelperRest::SendRequest($param, $url);
+        $resutlOrderSend = json_decode($resutlOrderSend,true);
+        if($resutlOrderSend['ORDER_ID']){
+            Helper::setValueUserField('CRM_DEAL', $id_deal, HelperRest::$fieldsDeal['ID Заказа'], $resutlOrderSend['ORDER_ID']); //ID заказа в сделке
+        }
+        if($resutlOrderSend['USER_ID']){
+            Helper::setValueUserField('CRM_COMPANY', $id_company, HelperRest::$fieldsCompany['ID_SITE_COMPANY'], $resutlOrderSend['USER_ID']);
+        }
+    }
+
+    //Изменение галочки Компании после изменения. Калка для выгрузки в 1С
+    public static function OnBeforeCrmCompanyUpdateHandler(&$arFields){
+        /*if ($USER->IsAuthorized()){
+            unset($arFields[HelperRest::$fieldsCompany['Комментарий из 1С']]);
+        }*/
+        /*if($arFields['ID'] && !$arFields['UF_SENT_TO_1C']) {
+            $arFields['UF_SENT_TO_1C'] = 0;
+        }*/
+        if($arFields['ID']){
+            Helper::setValueUserField('CRM_COMPANY', $arFields['ID'], 'UF_SENT_TO_1C', 0);
+        }
+    }
+
+
+     public function SendContractToSite($id_contract)
+    {
+        $contract = [];
+        $arFilter = Array("IBLOCK_ID"=>self::$iblockContracts, "ID"=>$id_contract);
+        $res = CIBlockElement::GetList(Array(), $arFilter);
+        if ($ob = $res->GetNextElement()){
+            $arFields = $ob->GetFields();
+            $arProps = $ob->GetProperties();
+            $contract = HelperRest::getContractMap($arFields,$arProps);
+            $data = self::GetInfoForCompany($contract['ID_CRM_COMPANY']);
+            foreach ($contract['ID_CRM_DEALS'] as $key => $value) {
+               $filter = [
+                    'ID' => $value,
+                ];
+
+                $select = [
+                    '*',
+                    'UF_*'
+                ];
+                $deal[] = \CCrmDeal::GetListEx([], $filter, false, false, $select)->Fetch();
+            }
+            $Deals = HelperRest::mapDeal($deal);
+            $contract['COMPANY'] = $data;
+            $contract['DEALS'] = $Deals;
+        }
+
+        if($contract){
+            $url = self::$urlToSite;
+            $key = self::GetKey();
+            $param = [
+                'key' => $key,
+                'action' => 'addContract',
+                'dataDoc' => $contract
+            ];
+            file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/1_SendContractToSite.txt",print_r($param,true), FILE_APPEND);
+            $resutlOrderSend = HelperRest::SendRequest($param, $url);
+            $resutlOrderSend = json_decode($resutlOrderSend,true);
+
+            if($resutlOrderSend['CONTRACT_ID']){
+
+            }
+            if($resutlOrderSend['USER_ID']){
+                Helper::setValueUserField('CRM_COMPANY', $contract['ID_CRM_COMPANY'], HelperRest::$fieldsCompany['ID_SITE_COMPANY'], $resutlOrderSend['USER_ID']);
+                CIBlockElement::SetPropertyValuesEx($id_contract, self::$iblockContracts, array('ID_POLZOVATELYA_SAYTA' => $resutlOrderSend['USER_ID']));
+            }
+        }
+    }
+
+    public static function OnAfterCrmInvoiceAddHandler($arFields)
+    {
+        $dataCompany = self::GetInfoForCompany($arFields['UF_COMPANY_ID']);
+
+        $filter = [
+            'ID' => $arFields['ID']
+        ];
+        $select = [
+            '*',
+            'UF_*'
+        ];
+
+
+        $resInvoice = \CCrmInvoice::GetList([], $filter, false, false, $select);
+        if ($invoice = $resInvoice->Fetch()) {
+            $DEAL_ID = $invoice['UF_DEAL_ID'];
+            $products = \CCrmInvoice::GetProductRows($invoice['ID']);
+            $invoice['PRODUCTS'] = $products;
+            $Deals[$DEAL_ID]['INVOICES'][] = $invoice;
+        }
+
+        foreach ($Deals as $id_deal => $deal) {
+            $invoice = HelperRest::mapInvoice($deal['INVOICES'])[0];
+        }
+
+
+        $filter = ['ID' => $DEAL_ID];
+        $select = [HelperRest::$fieldsDeal['GUID_CONTRACT'],HelperRest::$fieldsDeal['GUID_DEAL']];
+        $deals = \CCrmDeal::GetListEx([], $filter, false, false, $select);
+        if ($deal = $deals->Fetch()) {
+            if($deal[HelperRest::$fieldsDeal['GUID_CONTRACT']]){$contratGuid=$deal[HelperRest::$fieldsDeal['GUID_CONTRACT']];}
+            elseif($deal[HelperRest::$fieldsDeal['GUID_DEAL']]){$contratGuid=$deal[HelperRest::$fieldsDeal['GUID_DEAL']];}
+        }
+
+        if($contratGuid){
+            $arFilter = Array("IBLOCK_ID"=>self::$iblockContracts, "=PROPERTY_GUID_DOGOVORA"=>$contratGuid);
+            $res = CIBlockElement::GetList(Array(), $arFilter, false, [], ['NAME','PROPERTY_GUID_DOGOVORA']);
+            if($ob = $res->GetNextElement())
+            {
+                $arFields = $ob->GetFields();
+                $invoice['NAME_CONTRACT'] = $arFields['NAME'];
+                $invoice['GUID_CONTRACT'] = $arFields['PROPERTY_GUID_DOGOVORA_VALUE'];
+            }else{
+                $invoice['GUID_CONTRACT'] = $contratGuid;
+            }
+        }
+
+        /*if($DEAL_ID){
+            $filter = [
+                'ID' => $DEAL_ID,
+            ];
+
+            $select = [
+                '*',
+                'UF_*'
+            ];
+            $deal[] = \CCrmDeal::GetListEx([], $filter, false, false, $select)->Fetch();
+            $Deals = HelperRest::mapDeal($deal);
+        }*/
+
+        $invoice['COMPANY'] = $dataCompany;
+        //$invoice['DEALS'] = $Deals;
+
+        if($invoice){
+            $url = self::$urlToSite;
+            $key = self::GetKey();
+            $param = [
+                'key' => $key,
+                'action' => 'addInvoice',
+                'dataDoc' => $invoice
+            ];
+            //file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/2_SendInvoiceToSite.txt",print_r($invoice,true), FILE_APPEND);
+            $resutlOrderSend = HelperRest::SendRequest($param, $url);
+            file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/3_SendInvoiceToSite.txt",print_r($resutlOrderSend,true), FILE_APPEND);
+            $resutlOrderSend = json_decode($resutlOrderSend,true);
+
+
+            /*if($resutlOrderSend['INVOICE_ID']){
+                Helper::setValueUserField('CRM_INVOICE', $arFields['ID'], HelperRest::$fieldsInvoice['ID_SITE_INVOICE'], $resutlOrderSend['INVOICE_ID']);
+            }*/
+            if($resutlOrderSend['USER_ID']) {
+                Helper::setValueUserField('CRM_COMPANY', $arFields['UF_COMPANY_ID'], HelperRest::$fieldsCompany['ID_SITE_COMPANY'], $resutlOrderSend['USER_ID']);
+            }
+        }
+    }
+
+
+    public static function OnBeforeCrmCompanyDeleteHandler(&$id){
+        $companyData = HelperRest::searchCompanyByID($id);
+        if($companyData[HelperRest::$fieldsCompany['ID_SITE_COMPANY']] && $companyData[HelperRest::$fieldsCompany['ID_SITE_COMPANY']]>0){
+            $url = self::$urlToSite;
+            $key = self::GetKey();
+
+            $param = [
+                'key' => $key,
+                'action' => 'DeleteContact',
+                'ID_SITE_COMPANY' => $companyData[HelperRest::$fieldsCompany['ID_SITE_COMPANY']]
+            ];
+            $resutlOrderSend = HelperRest::SendRequest($param, $url);
+            $resutlOrderSend = json_decode($resutlOrderSend,true);
+        }
+        //file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/deleteCompany.txt",print_r($arFields,true), FILE_APPEND);
+    }
+
+    public static function OnBeforeCrmDealDeleteHandler(&$id){
+        $dealData = HelperRest::getDealById($id);
+        if($dealData[HelperRest::$fieldsDeal['ID Заказа']] && $dealData[HelperRest::$fieldsDeal['ID Заказа']]>0){
+            $url = self::$urlToSite;
+            $key = self::GetKey();
+
+            $param = [
+                'key' => $key,
+                'action' => 'DeleteOrder',
+                'ID Заказа' => $dealData[HelperRest::$fieldsDeal['ID Заказа']]
+            ];
+            $resutlOrderSend = HelperRest::SendRequest($param, $url);
+            $resutlOrderSend = json_decode($resutlOrderSend,true);
+        }
+        //file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/deleteDeal.txt",print_r($id,true), FILE_APPEND);
+    }
+
+    public static function OnBeforeCrmInvoiceDeleteHandler(&$id){
+
+        $invoiceData = HelperRest::getInvoicesById($id);
+        if($invoiceData[HelperRest::$fieldsInvoice['GUID_INVOICE']] && $invoiceData[HelperRest::$fieldsInvoice['GUID_INVOICE']]>0){
+            $url = self::$urlToSite;
+            $key = self::GetKey();
+
+            $param = [
+                'key' => $key,
+                'action' => 'DeleteInvoice',
+                'GUID_INVOICE' => $invoiceData[HelperRest::$fieldsInvoice['GUID_INVOICE']]
+            ];
+            $resutlOrderSend = HelperRest::SendRequest($param, $url);
+            $resutlOrderSend = json_decode($resutlOrderSend,true);
+        }
+        //file_put_contents($_SERVER['DOCUMENT_ROOT']."/logs/deleteInvoice.txt",print_r($id,true), FILE_APPEND);
+    }
+
+    public static function OnBeforeIBlockElementDeleteHandler($id){
+        $arFilter = Array("IBLOCK_ID"=>self::$iblockContracts, "ID"=>$id);
+        $res = CIBlockElement::GetList(Array(), $arFilter, false, [], ['NAME','PROPERTY_GUID_DOGOVORA']);
+        if($ob = $res->GetNextElement())
+        {
+            $arFields = $ob->GetFields();
+            if($arFields['PROPERTY_GUID_DOGOVORA_VALUE'] && $arFields['PROPERTY_GUID_DOGOVORA_VALUE']>0){
+                $url = self::$urlToSite;
+                $key = self::GetKey();
+
+                $param = [
+                    'key' => $key,
+                    'action' => 'DeleteContract',
+                    'GUID_CONTRACT' => $arFields['PROPERTY_GUID_DOGOVORA_VALUE']
+                ];
+                $resutlOrderSend = HelperRest::SendRequest($param, $url);
+                $resutlOrderSend = json_decode($resutlOrderSend,true);
+            }
+        }
+    }
+
+
+
+
+}

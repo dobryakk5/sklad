@@ -1,30 +1,78 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getBox, getWarehouse } from '@/lib/api'
+import { getBox, getSeoMeta, getWarehouse } from '@/lib/api'
 import { formatNumberRu } from '@/lib/format'
+import {
+  getRentalCatalogPath,
+  getRentalModeConfig,
+  inferRentalModeFromBox,
+  normalizeRentalMode,
+} from '@/lib/rentalModes'
 import { BoxGallery } from '@/components/box/BoxGallery'
 import type { Metadata } from 'next'
+import type { SeoOverride } from '@/types/admin'
 import type { Box } from '@/types/box'
+import type { RentalMode } from '@/types/rental'
 
 const BITRIX_BASE = 'https://alfasklad.ru'
 
 interface Props {
   params: Promise<{ slug: string; id: string }>
+  searchParams: Promise<{ mode?: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+function resolveMode(rawMode: string | undefined, box: Box): RentalMode {
+  return rawMode ? normalizeRentalMode(rawMode) : inferRentalModeFromBox(box)
+}
+
+function displayTitle(box: Box, label: string): string {
+  return box.box_number ? `${label} №${box.box_number}` : (box.name || label)
+}
+
+function applySeoMetadata(base: Metadata, seo: SeoOverride | null): Metadata {
+  if (!seo) {
+    return base
+  }
+
+  return {
+    ...base,
+    title: seo.title ?? base.title,
+    description: seo.description ?? base.description,
+    alternates: seo.canonical
+      ? { ...base.alternates, canonical: seo.canonical }
+      : base.alternates,
+    openGraph: {
+      ...base.openGraph,
+      title: seo.og_title ?? seo.title ?? undefined,
+      description: seo.og_description ?? seo.description ?? undefined,
+      images: seo.og_image ? [seo.og_image] : undefined,
+    },
+  }
+}
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { id, slug } = await params
   try {
-    const [box, warehouse] = await Promise.all([getBox(id), getWarehouse(slug)])
+    const [box, warehouse, seo] = await Promise.all([
+      getBox(id),
+      getWarehouse(slug),
+      getSeoMeta('box', id),
+    ])
+    const { mode: rawMode } = await searchParams
+    const mode = resolveMode(rawMode, box)
+    const config = getRentalModeConfig(mode)
+    const title = displayTitle(box, config.itemLabel)
     const monthlyPrice = formatNumberRu(box.price)
-    return {
-      title: `Бокс №${box.box_number} · ${box.square} м² · ${warehouse.name}`,
+    const base: Metadata = {
+      title: `${title} · ${box.square} м² · ${warehouse.name}`,
       description: monthlyPrice
-        ? `Аренда бокса №${box.box_number}, ${box.square} м², ${monthlyPrice} ₽/мес. Склад ${warehouse.name}, ${warehouse.address}.`
-        : `Аренда бокса №${box.box_number} на складе ${warehouse.name}, ${warehouse.address}.`,
+        ? `${config.label}: ${title.toLowerCase()}, ${box.square} м², ${monthlyPrice} ₽/мес. Склад ${warehouse.name}, ${warehouse.address}.`
+        : `${config.label}: ${title.toLowerCase()} на складе ${warehouse.name}, ${warehouse.address}.`,
     }
+
+    return applySeoMetadata(base, seo)
   } catch {
-    return { title: 'Бокс' }
+    return { title: 'Объект каталога' }
   }
 }
 
@@ -78,7 +126,7 @@ function IconPhone() {
 }
 
 // ─── Страница ─────────────────────────────────────────────────────
-export default async function BoxDetailPage({ params }: Props) {
+export default async function BoxDetailPage({ params, searchParams }: Props) {
   const { slug, id } = await params
 
   const [box, warehouse] = await Promise.all([
@@ -86,8 +134,14 @@ export default async function BoxDetailPage({ params }: Props) {
     getWarehouse(slug),
   ])
 
-  // Проверяем что бокс реально принадлежит этому складу
+  // Проверяем что объект реально принадлежит этому складу
   if (box.warehouse_id !== warehouse.id) notFound()
+
+  const { mode: rawMode } = await searchParams
+  const mode = resolveMode(rawMode, box)
+  const modeConfig = getRentalModeConfig(mode)
+  const objectTitle = displayTitle(box, modeConfig.itemLabel)
+  const warehouseHref = `/warehouses/${slug}?mode=${mode}`
 
   const status = STATUS_META[box.status]
   const isAvailable = box.status === 'free'
@@ -105,9 +159,11 @@ export default async function BoxDetailPage({ params }: Props) {
         <nav className="breadcrumbs" aria-label="Навигация">
           <Link href="/" className="bc-link">Главная</Link>
           <span className="bc-sep">›</span>
-          <Link href={`/warehouses/${slug}`} className="bc-link">{warehouse.name}</Link>
+          <Link href={getRentalCatalogPath(mode)} className="bc-link">{modeConfig.label}</Link>
           <span className="bc-sep">›</span>
-          <span className="bc-current">Бокс №{box.box_number}</span>
+          <Link href={warehouseHref} className="bc-link">{warehouse.name}</Link>
+          <span className="bc-sep">›</span>
+          <span className="bc-current">{objectTitle}</span>
         </nav>
 
         {/* Основной грид: фото слева, инфо справа */}
@@ -115,7 +171,7 @@ export default async function BoxDetailPage({ params }: Props) {
 
           {/* Левая колонка — галерея */}
           <div className="box-detail-left">
-            <BoxGallery photoUrl={box.photo_url} boxNumber={box.box_number} />
+            <BoxGallery photoUrl={box.photo_url} title={objectTitle} />
           </div>
 
           {/* Правая колонка — вся информация */}
@@ -124,8 +180,8 @@ export default async function BoxDetailPage({ params }: Props) {
             {/* Заголовок + статус */}
             <div className="bd-header">
               <div>
-                <p className="bd-eyebrow">Бокс для хранения · {warehouse.name}</p>
-                <h1 className="bd-title">Бокс №{box.box_number}</h1>
+                <p className="bd-eyebrow">{modeConfig.itemLabel} для хранения · {warehouse.name}</p>
+                <h1 className="bd-title">{objectTitle}</h1>
               </div>
               <span
                 className="bd-status"
@@ -208,13 +264,13 @@ export default async function BoxDetailPage({ params }: Props) {
                     <IconArrowOut />
                   </a>
                   <p className="bd-soon-note">
-                    Бокс освободится — мы свяжемся с вами первыми
+                    Помещение освободится — мы свяжемся с вами первыми
                   </p>
                 </>
               )}
               {!isAvailable && !isSoon && (
                 <div className="bd-btn-unavail">
-                  Бокс сейчас занят
+                  Сейчас занято
                 </div>
               )}
               <a href="tel:+74952663974" className="bd-btn-call">
@@ -287,8 +343,8 @@ export default async function BoxDetailPage({ params }: Props) {
             </div>
 
             <div className="bd-wcard bd-wcard--action">
-              <Link href={`/warehouses/${slug}`} className="bd-wcard-link">
-                Все боксы этого склада →
+              <Link href={warehouseHref} className="bd-wcard-link">
+                Все помещения этого склада →
               </Link>
             </div>
           </div>

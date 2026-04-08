@@ -36,11 +36,12 @@ interface Props {
   filters: BoxFilters
   totalCount: number
   filteredCount: number
+  countLabel?: string
   onChange: (next: Partial<BoxFilters>) => void
   onReset: () => void
 }
 
-export function BoxFiltersBar({ filters, totalCount, filteredCount, onChange, onReset }: Props) {
+export function BoxFiltersBar({ filters, totalCount, filteredCount, countLabel = 'помещений', onChange, onReset }: Props) {
   const hasActiveFilters =
     (filters.status && filters.status !== 'available') ||
     filters.floor ||
@@ -130,7 +131,7 @@ export function BoxFiltersBar({ filters, totalCount, filteredCount, onChange, on
         {/* Счётчик + сброс */}
         <div className="filters-meta">
           <span className="filters-count">
-            {filteredCount} из {totalCount} боксов
+            {filteredCount} из {totalCount} {countLabel}
           </span>
           {hasActiveFilters && (
             <button className="filters-reset" onClick={onReset}>

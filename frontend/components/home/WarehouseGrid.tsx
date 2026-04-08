@@ -2,15 +2,24 @@
 
 import { useState, useMemo } from 'react'
 import type { Warehouse } from '@/types/warehouse'
+import type { RentalMode } from '@/types/rental'
 import { WarehouseCard } from './WarehouseCard'
 
 const ALL = 'Все'
 
 interface Props {
   warehouses: Warehouse[]
+  title?: string
+  emptyMessage?: string
+  rentalMode?: RentalMode
 }
 
-export function WarehouseGrid({ warehouses }: Props) {
+export function WarehouseGrid({
+  warehouses,
+  title = 'Наши склады',
+  emptyMessage = 'В этом районе складов пока нет',
+  rentalMode,
+}: Props) {
   const [activeDistrict, setActiveDistrict] = useState(ALL)
 
   // Собираем уникальные районы, пропускаем пустые строки
@@ -38,7 +47,7 @@ export function WarehouseGrid({ warehouses }: Props) {
   return (
     <section className="warehouse-section">
       <div className="section-header">
-        <h2 className="section-title">Наши склады</h2>
+        <h2 className="section-title">{title}</h2>
 
         {/* Фильтр по районам показываем только если данные есть */}
         {hasDistricts && (
@@ -70,11 +79,11 @@ export function WarehouseGrid({ warehouses }: Props) {
       {filtered.length > 0 ? (
         <div className="warehouse-grid">
           {filtered.map((w, i) => (
-            <WarehouseCard key={w.id} warehouse={w} index={i} />
+            <WarehouseCard key={w.id} warehouse={w} index={i} rentalMode={rentalMode} />
           ))}
         </div>
       ) : (
-        <p className="no-results">В этом районе складов пока нет</p>
+        <p className="no-results">{emptyMessage}</p>
       )}
     </section>
   )

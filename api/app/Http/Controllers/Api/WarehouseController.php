@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTO\WarehouseFiltersDTO;
+use App\Http\Requests\Api\WarehouseListRequest;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -18,10 +20,11 @@ final class WarehouseController extends ApiController
      *
      * Список всех активных складов (без пагинации — складов немного).
      */
-    public function index(): JsonResponse
+    public function index(WarehouseListRequest $request): JsonResponse
     {
         try {
-            $warehouses = $this->warehouses->getAll();
+            $filters    = WarehouseFiltersDTO::fromArray($request->validated());
+            $warehouses = $this->warehouses->getAll($filters);
             $items      = array_map(fn($w) => $w->toArray(), $warehouses);
 
             return $this->collection(

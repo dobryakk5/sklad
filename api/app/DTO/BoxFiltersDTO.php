@@ -2,6 +2,7 @@
 
 namespace App\DTO;
 
+use App\Domain\Box\RentalMode;
 use App\Support\Bitrix\BitrixBoxStatusMapper;
 
 final class BoxFiltersDTO
@@ -12,6 +13,7 @@ final class BoxFiltersDTO
         public readonly ?float  $squareMin = null,
         public readonly ?float  $squareMax = null,
         public readonly ?string $objectType = null,
+        public readonly ?RentalMode $rentalMode = null,
         public readonly int     $page = 1,
         public readonly int     $perPage = 30,
     ) {}
@@ -24,6 +26,7 @@ final class BoxFiltersDTO
             squareMin: isset($data['size_min']) ? (float) $data['size_min'] : null,
             squareMax: isset($data['size_max']) ? (float) $data['size_max'] : null,
             objectType: $data['object_type'] ?? null,
+            rentalMode: isset($data['rental_mode']) ? RentalMode::tryFrom((string) $data['rental_mode']) : null,
             page: isset($data['page']) ? max(1, (int) $data['page']) : 1,
             perPage: isset($data['per_page']) ? min(100, max(1, (int) $data['per_page'])) : 30,
         );

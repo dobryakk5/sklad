@@ -1,3 +1,5 @@
+import type { RentalMode } from './rental'
+
 export interface Warehouse {
   id: number
   name: string
@@ -29,4 +31,8 @@ export interface ApiResponse<T> {
     page: number
     per_page?: number
   }
+}
+
+export interface WarehouseApiParams {
+  rental_mode?: RentalMode
 }

@@ -7,12 +7,12 @@ const BITRIX_BASE = 'https://alfasklad.ru'
 
 interface Props {
   photoUrl: string | null
-  boxNumber: string
+  title: string
 }
 
 // В будущем API вернёт массив фото — пока работаем с одним
 // Компонент уже готов к массиву
-export function BoxGallery({ photoUrl, boxNumber }: Props) {
+export function BoxGallery({ photoUrl, title }: Props) {
   const photos = photoUrl ? [`${BITRIX_BASE}${photoUrl}`] : []
   const [active, setActive] = useState(0)
 
@@ -24,7 +24,7 @@ export function BoxGallery({ photoUrl, boxNumber }: Props) {
           <path d="M6 26 L20 18 L32 26 L44 19 L50 24" stroke="#C4C0B8" strokeWidth="1.5" />
           <circle cx="40" cy="24" r="5" stroke="#C4C0B8" strokeWidth="1.5" />
         </svg>
-        <p>Фото бокса {boxNumber} пока нет</p>
+        <p>Фото помещения «{title}» пока нет</p>
       </div>
     )
   }
@@ -35,7 +35,7 @@ export function BoxGallery({ photoUrl, boxNumber }: Props) {
       <div className="gallery-main">
         <Image
           src={photos[active]}
-          alt={`Бокс ${boxNumber}`}
+          alt={title}
           fill
           sizes="(max-width: 768px) 100vw, 560px"
           className="gallery-img"

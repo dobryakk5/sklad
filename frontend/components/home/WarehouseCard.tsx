@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { formatNumberRu } from '@/lib/format'
+import { getRentalModeConfig } from '@/lib/rentalModes'
+import type { RentalMode } from '@/types/rental'
 import type { Warehouse } from '@/types/warehouse'
 
 const DISTRICT_COLORS: Record<string, { bg: string; text: string }> = {
@@ -39,9 +41,10 @@ function ClockIcon() {
 interface Props {
   warehouse: Warehouse
   index: number
+  rentalMode?: RentalMode
 }
 
-export function WarehouseCard({ warehouse, index }: Props) {
+export function WarehouseCard({ warehouse, index, rentalMode }: Props) {
   const district    = warehouse.district ? DISTRICT_COLORS[warehouse.district] : null
   const freeCount   = warehouse.available_boxes_count
   const totalCount  = warehouse.total_boxes_count
@@ -61,10 +64,19 @@ export function WarehouseCard({ warehouse, index }: Props) {
 
   // price_per_sqm теперь number, не string
   const priceFormatted = formatNumberRu(warehouse.price_per_sqm)
+  const modeConfig = rentalMode ? getRentalModeConfig(rentalMode) : null
+  const countLabel = modeConfig?.countLabel ?? 'свободных помещений'
+  const ctaLabel = modeConfig ? 'Выбрать склад' : 'Смотреть помещения'
+  const availabilityBarLabel = modeConfig
+    ? `${freePct}% ${modeConfig.countLabel}`
+    : `${freePct}% помещений свободно`
+  const href = rentalMode
+    ? `/warehouses/${warehouse.slug}?mode=${rentalMode}`
+    : `/warehouses/${warehouse.slug}`
 
   return (
     <Link
-      href={`/warehouses/${warehouse.slug}`}
+      href={href}
       style={{ animationDelay: `${index * 60}ms` }}
       className="warehouse-card group"
     >
@@ -112,7 +124,7 @@ export function WarehouseCard({ warehouse, index }: Props) {
             <span style={{ color: availColor }} className="avail-count">
               {freeCount}
             </span>
-            <span className="avail-label">свободных боксов</span>
+            <span className="avail-label">{countLabel}</span>
           </div>
         </div>
 
@@ -149,7 +161,7 @@ export function WarehouseCard({ warehouse, index }: Props) {
               />
             </div>
             <span className="avail-bar-label">
-              {freePct}% боксов свободно
+              {availabilityBarLabel}
             </span>
           </div>
 
@@ -163,7 +175,7 @@ export function WarehouseCard({ warehouse, index }: Props) {
               </div>
             )}
             <span className="card-cta">
-              Смотреть боксы
+              {ctaLabel}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

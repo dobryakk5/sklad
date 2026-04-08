@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Support\Bitrix\RentalModeMapper;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class BoxListRequest extends FormRequest
 {
@@ -24,6 +26,7 @@ class BoxListRequest extends FormRequest
             'size_min'    => ['sometimes', 'numeric', 'min:0'],
             'size_max'    => ['sometimes', 'numeric', 'min:0', 'gte:size_min'],
             'object_type' => ['sometimes', 'string', 'in:Бокс,Ячейка,Контейнер,Антресольный бокс'],
+            'rental_mode' => ['sometimes', 'string', Rule::in(RentalModeMapper::apiValues())],
             'page'        => ['sometimes', 'integer', 'min:1'],
             'per_page'    => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];

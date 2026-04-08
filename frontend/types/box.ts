@@ -1,3 +1,5 @@
+import type { RentalMode } from './rental'
+
 export type BoxStatus =
   | 'free'       // 346 — свободен
   | 'rented'     // 341 — занят
@@ -42,6 +44,7 @@ export interface BoxApiParams {
   size_min?: number        // минимальная площадь м²
   size_max?: number        // максимальная площадь м²
   object_type?: string     // 'Бокс' | 'Ячейка' | 'Контейнер' | 'Антресольный бокс'
+  rental_mode?: RentalMode
   page?: number
   per_page?: number
 }

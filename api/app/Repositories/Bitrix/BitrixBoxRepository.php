@@ -7,6 +7,7 @@ use App\DTO\BoxFiltersDTO;
 use App\Domain\Box\BoxStatus;
 use App\Repositories\Contracts\BoxRepositoryInterface;
 use App\Support\Bitrix\BitrixBoxStatusMapper;
+use App\Support\Bitrix\RentalModeMapper;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -115,6 +116,10 @@ final class BitrixBoxRepository implements BoxRepositoryInterface
             $query->where('ie.IBLOCK_SECTION_ID', $filters->warehouseId);
         }
 
+        if ($filters->rentalMode !== null) {
+            $this->applyRentalModeHaving($query, $filters);
+        }
+
         // Фильтр по статусу через HAVING (агрегированное поле — WHERE не работает)
         $statusIds = $filters->statusEnumIds();
         if ($statusIds !== null) {
@@ -203,8 +208,51 @@ final class BitrixBoxRepository implements BoxRepositoryInterface
     {
         $placeholders = implode(',', array_fill(0, $count, '?'));
 
-        return 'MAX(CASE WHEN ipv.IBLOCK_PROPERTY_ID = ' . self::PROP_STATUS
-            . ' THEN ipv.VALUE_ENUM END) IN (' . $placeholders . ')';
+        return $this->aggregatedEnumExpr(self::PROP_STATUS)
+            . ' IN (' . $placeholders . ')';
+    }
+
+    private function aggregatedEnumExpr(int $propertyId): string
+    {
+        return 'MAX(CASE WHEN ipv.IBLOCK_PROPERTY_ID = ' . $propertyId . ' THEN ipv.VALUE_ENUM END)';
+    }
+
+    private function applyRentalModeHaving(Builder $query, BoxFiltersDTO $filters): void
+    {
+        $mode = $filters->rentalMode;
+        if ($mode === null) {
+            return;
+        }
+
+        $objectExpr = $this->aggregatedEnumExpr(self::PROP_OBJECT_TYPE);
+        $rentExpr   = $this->aggregatedEnumExpr(self::PROP_RENT_TYPE);
+
+        if (RentalModeMapper::isCompound($mode)) {
+            $objectTypeIds = RentalModeMapper::objectTypeIdsFor($mode);
+            $rentTypeIds   = RentalModeMapper::rentTypeIdsFor($mode);
+
+            $query->havingRaw(
+                '(' . $rentExpr . ' IN (' . $this->placeholders(count($rentTypeIds)) . ')'
+                . ' OR '
+                . $objectExpr . ' IN (' . $this->placeholders(count($objectTypeIds)) . '))',
+                [...$rentTypeIds, ...$objectTypeIds],
+            );
+
+            return;
+        }
+
+        // box фильтруется по OBJECT_TYPE=416, а не по RENT_TYPE=340.
+        // Иначе антресольные боксы попали бы и в box, и в storage.
+        $objectTypeIds = RentalModeMapper::objectTypeIdsFor($mode);
+        $query->havingRaw(
+            $objectExpr . ' IN (' . $this->placeholders(count($objectTypeIds)) . ')',
+            $objectTypeIds,
+        );
+    }
+
+    private function placeholders(int $count): string
+    {
+        return implode(',', array_fill(0, $count, '?'));
     }
 
     // ------------------------------------------------------------------ //

@@ -1,7 +1,8 @@
 import 'server-only'
 
 import type { Box, BoxApiParams } from '@/types/box'
-import type { Warehouse, ApiResponse } from '@/types/warehouse'
+import type { Warehouse, ApiResponse, WarehouseApiParams } from '@/types/warehouse'
+import type { Review, SeoOverride, SeoPageType } from '@/types/admin'
 
 function getApiBase(): string {
   const base =
@@ -22,8 +23,13 @@ function getApiBase(): string {
  * бэкенд уже обновил (особенно критично для available_boxes_count).
  */
 
-export async function getWarehouses(): Promise<Warehouse[]> {
-  const res = await fetch(`${getApiBase()}/warehouses`, {
+export async function getWarehouses(params: WarehouseApiParams = {}): Promise<Warehouse[]> {
+  const query = new URLSearchParams()
+  if (params.rental_mode) query.set('rental_mode', params.rental_mode)
+
+  const suffix = query.size > 0 ? `?${query}` : ''
+
+  const res = await fetch(`${getApiBase()}/warehouses${suffix}`, {
     next: { revalidate: 60 },   // = CacheKeys::TTL_AVAILABILITY
   })
   if (!res.ok) throw new Error(`Не удалось получить список складов: ${res.status}`)
@@ -52,6 +58,7 @@ export async function getBoxes(params: BoxApiParams): Promise<{ data: Box[]; tot
   if (params.size_min !== undefined)   query.set('size_min',    String(params.size_min))
   if (params.size_max !== undefined)   query.set('size_max',    String(params.size_max))
   if (params.object_type)              query.set('object_type', params.object_type)
+  if (params.rental_mode)              query.set('rental_mode', params.rental_mode)
   if (params.page)                     query.set('page',        String(params.page))
   if (params.per_page)                 query.set('per_page',    String(params.per_page))
 
@@ -74,4 +81,38 @@ export async function getBox(id: string | number): Promise<Box> {
   if (!res.ok) throw new Error(`Ошибка загрузки бокса: ${res.status}`)
   const json: ApiResponse<Box> = await res.json()
   return json.data
+}
+
+export async function getReviews(): Promise<Review[]> {
+  try {
+    const res = await fetch(`${getApiBase()}/reviews`, {
+      next: { revalidate: 60 },
+    })
+
+    if (!res.ok) {
+      return []
+    }
+
+    const json: ApiResponse<Review[]> = await res.json()
+    return json.data
+  } catch {
+    return []
+  }
+}
+
+export async function getSeoMeta(pageType: SeoPageType, pageSlug: string): Promise<SeoOverride | null> {
+  try {
+    const res = await fetch(`${getApiBase()}/seo/${pageType}/${pageSlug}`, {
+      next: { revalidate: 60 },
+    })
+
+    if (!res.ok) {
+      return null
+    }
+
+    const json: ApiResponse<SeoOverride> = await res.json()
+    return json.data
+  } catch {
+    return null
+  }
 }

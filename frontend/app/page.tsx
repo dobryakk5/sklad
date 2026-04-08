@@ -1,18 +1,20 @@
 import { Suspense } from 'react'
-import { getWarehouses } from '@/lib/api'
+import { getReviews, getWarehouses } from '@/lib/api'
+import { ReviewsSection } from '@/components/home/ReviewsSection'
 import { WarehouseGrid } from '@/components/home/WarehouseGrid'
 import type { Metadata } from 'next'
+import type { Warehouse } from '@/types/warehouse'
 
 export const metadata: Metadata = {
-  title: 'Аренда боксов для хранения вещей в Москве',
+  title: 'Аренда боксов, контейнеров и кладовок в Москве',
   description:
-    'Боксы от 1 до 76 м² в Москве. Доступ 24/7, охрана, видеонаблюдение. Выберите склад рядом с домом и арендуйте онлайн.',
+    'Боксы, контейнеры, ячейки, кладовки и помещения в Москве. Доступ 24/7, охрана и удобный выбор склада рядом с домом или бизнесом.',
 }
 
 const STATS = [
   { value: '12',      label: 'складов в Москве' },
-  { value: '1400+',   label: 'боксов в наличии' },
-  { value: 'от 1 м²', label: 'минимальный размер' },
+  { value: '1400+',   label: 'помещений в каталоге' },
+  { value: '5',       label: 'типов хранения' },
   { value: '24/7',    label: 'доступ без выходных' },
 ]
 
@@ -27,8 +29,20 @@ function GridSkeleton() {
 }
 
 async function WarehousesAsync() {
-  const warehouses = await getWarehouses()
+  let warehouses: Warehouse[] = []
+
+  try {
+    warehouses = await getWarehouses()
+  } catch {
+    warehouses = []
+  }
+
   return <WarehouseGrid warehouses={warehouses} />
+}
+
+async function ReviewsAsync() {
+  const reviews = await getReviews()
+  return <ReviewsSection reviews={reviews} />
 }
 
 export default function HomePage() {
@@ -40,12 +54,12 @@ export default function HomePage() {
             <div className="hero-text">
               <p className="hero-eyebrow">Сеть складов индивидуального хранения</p>
               <h1 className="hero-heading">
-                Аренда боксов<br />
+                Аренда помещений<br />
                 <span className="hero-accent">в Москве</span>
               </h1>
               <p className="hero-sub">
-                Для личных вещей и бизнеса. Отапливаемые боксы,
-                видеонаблюдение, круглосуточный доступ по пин-коду.
+                Для личных вещей и бизнеса. Боксы, контейнеры, ячейки,
+                кладовки и помещения с круглосуточным доступом по пин-коду.
               </p>
               <div className="hero-ctas">
                 <a href="#warehouses" className="btn-primary">Выбрать склад</a>
@@ -63,7 +77,7 @@ export default function HomePage() {
             <ul className="hero-usps" aria-label="Преимущества">
               {[
                 ['🔒', 'Охрана и видеонаблюдение'],
-                ['🌡', 'Отапливаемые боксы'],
+                ['📦', 'Боксы, контейнеры и кладовки'],
                 ['📱', 'Оплата онлайн и в приложении'],
                 ['🚗', 'Удобный подъезд и погрузка'],
               ].map(([icon, text]) => (
@@ -92,11 +106,15 @@ export default function HomePage() {
         </Suspense>
       </div>
 
+      <Suspense fallback={null}>
+        <ReviewsAsync />
+      </Suspense>
+
       <section className="cta-band">
         <div className="container cta-band-inner">
           <div>
-            <p className="cta-band-title">Не знаете какой бокс выбрать?</p>
-            <p className="cta-band-sub">Менеджер поможет подобрать подходящий размер</p>
+            <p className="cta-band-title">Не знаете какое помещение выбрать?</p>
+            <p className="cta-band-sub">Менеджер поможет подобрать склад и подходящий размер под ваши вещи</p>
           </div>
           <div className="cta-band-actions">
             <a href="tel:+74952663974" className="btn-primary">Позвонить</a>

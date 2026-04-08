@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Cached;
 
+use App\DTO\WarehouseFiltersDTO;
 use App\DTO\WarehouseDTO;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
 use App\Support\Cache\CacheKeys;
@@ -38,12 +39,12 @@ final class CachedWarehouseRepository implements WarehouseRepositoryInterface
     /**
      * @return WarehouseDTO[]
      */
-    public function getAll(): array
+    public function getAll(WarehouseFiltersDTO $filters): array
     {
         return $this->remember(
-            CacheKeys::warehouseAll(),
+            CacheKeys::warehouseAll($filters),
             CacheKeys::TTL_AVAILABILITY,
-            fn() => $this->inner->getAll(),
+            fn() => $this->inner->getAll($filters),
         );
     }
 

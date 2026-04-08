@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
+use App\DTO\WarehouseFiltersDTO;
 use App\DTO\WarehouseDTO;
 
 interface WarehouseRepositoryInterface
@@ -11,7 +12,7 @@ interface WarehouseRepositoryInterface
      *
      * @return WarehouseDTO[]
      */
-    public function getAll(): array;
+    public function getAll(WarehouseFiltersDTO $filters): array;
 
     /**
      * Один склад по числовому ID секции (b_iblock_section.id).

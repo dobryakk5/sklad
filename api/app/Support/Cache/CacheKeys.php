@@ -3,6 +3,7 @@
 namespace App\Support\Cache;
 
 use App\DTO\BoxFiltersDTO;
+use App\DTO\WarehouseFiltersDTO;
 
 /**
  * Централизованное управление ключами и TTL Redis-кэша.
@@ -25,9 +26,13 @@ final class CacheKeys
     //  Warehouse keys                                                      //
     // ------------------------------------------------------------------ //
 
-    public static function warehouseAll(): string
+    public static function warehouseAll(WarehouseFiltersDTO $filters): string
     {
-        return 'bitrix:warehouses:all';
+        $params = [
+            'rm' => $filters->rentalMode?->value,
+        ];
+
+        return 'bitrix:warehouses:all:' . md5(serialize($params));
     }
 
     public static function warehouseById(int $id): string
@@ -58,6 +63,7 @@ final class CacheKeys
             'smin' => $filters->squareMin,
             'smax' => $filters->squareMax,
             'ot'   => $filters->objectType,
+            'rm'   => $filters->rentalMode?->value,
             'pg'   => $filters->page,
             'pp'   => $filters->perPage,
         ];

@@ -2,8 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import type { Box, BoxFilters } from '@/types/box'
+import type { RentalMode } from '@/types/rental'
 import type { Warehouse } from '@/types/warehouse'
 import { formatNumberRu } from '@/lib/format'
+import { getRentalModeConfig } from '@/lib/rentalModes'
 import { BoxCard } from './BoxCard'
 import { BoxFiltersBar } from './BoxFiltersBar'
 
@@ -38,10 +40,12 @@ function sortBoxes(boxes: Box[], sort: BoxFilters['sort']): Box[] {
 interface Props {
   boxes: Box[]
   warehouse: Warehouse
+  mode: RentalMode
 }
 
-export function BoxGrid({ boxes, warehouse }: Props) {
+export function BoxGrid({ boxes, warehouse, mode }: Props) {
   const [filters, setFilters] = useState<BoxFilters>(DEFAULT_FILTERS)
+  const modeConfig = getRentalModeConfig(mode)
 
   const handleChange = (next: Partial<BoxFilters>) => {
     setFilters((prev) => ({ ...prev, ...next }))
@@ -87,8 +91,8 @@ export function BoxGrid({ boxes, warehouse }: Props) {
         <div className="winfo-main">
           <div className="winfo-badge">
             {freeCount > 0
-              ? <><span className="winfo-dot winfo-dot--green" />Есть свободные боксы</>
-              : <><span className="winfo-dot winfo-dot--red" />Все боксы заняты</>
+              ? <><span className="winfo-dot winfo-dot--green" />Есть свободные {modeConfig.pluralLabel.toLowerCase()}</>
+              : <><span className="winfo-dot winfo-dot--red" />Все {modeConfig.pluralLabel.toLowerCase()} заняты</>
             }
           </div>
           <div className="winfo-row">
@@ -114,11 +118,12 @@ export function BoxGrid({ boxes, warehouse }: Props) {
         filters={filters}
         totalCount={boxes.length}
         filteredCount={filtered.length}
+        countLabel={modeConfig.listingLabel}
         onChange={handleChange}
         onReset={handleReset}
       />
 
-      {/* Сетка боксов */}
+      {/* Сетка помещений */}
       {filtered.length > 0 ? (
         <div className="box-grid">
           {filtered.map((box, i) => (
@@ -126,6 +131,7 @@ export function BoxGrid({ boxes, warehouse }: Props) {
               key={box.id}
               box={box}
               warehouseSlug={warehouse.slug}
+              mode={mode}
               index={i}
             />
           ))}
@@ -140,8 +146,8 @@ export function BoxGrid({ boxes, warehouse }: Props) {
               <path d="M16 6 L32 6 L42 14" stroke="#C4C0B8" strokeWidth="1.5" />
             </svg>
           </div>
-          <p className="box-empty-title">Нет боксов с такими параметрами</p>
-          <p className="box-empty-sub">Попробуйте изменить фильтры или посмотрите другие склады</p>
+          <p className="box-empty-title">Сейчас нет подходящих {modeConfig.listingLabel}</p>
+          <p className="box-empty-sub">Попробуйте изменить фильтры или выбрать другой склад</p>
           <button className="box-empty-reset" onClick={handleReset}>
             Сбросить фильтры
           </button>

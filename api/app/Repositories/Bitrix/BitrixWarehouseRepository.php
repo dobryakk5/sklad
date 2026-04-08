@@ -2,9 +2,12 @@
 
 namespace App\Repositories\Bitrix;
 
+use App\DTO\WarehouseFiltersDTO;
 use App\DTO\WarehouseDTO;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
 use App\Support\Bitrix\BitrixBoxStatusMapper;
+use App\Support\Bitrix\RentalModeMapper;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
@@ -15,8 +18,10 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
     private const BASE_PRICE_GROUP_ID = 1;
 
     // ID свойства STATUS боксов (из b_iblock_property WHERE iblock_id=40)
-    private const PROP_STATUS = 484;
-    private const PROP_SQUARE = 480;
+    private const PROP_STATUS      = 484;
+    private const PROP_SQUARE      = 480;
+    private const PROP_OBJECT_TYPE = 640;
+    private const PROP_RENT_TYPE   = 481;
 
     // ID пользовательского поля UF_DISTRICT в b_user_field (ENTITY_ID = 'IBLOCK_40_SECTION').
     // Тип: enumeration — в b_uts_iblock_40_section хранится INTEGER (= b_user_field_enum.ID).
@@ -27,14 +32,21 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
     //  Public API                                                          //
     // ------------------------------------------------------------------ //
 
-    public function getAll(): array
+    public function getAll(WarehouseFiltersDTO $filters): array
     {
         $rows = $this->fetchSections();
 
         $warehouseIds = array_column($rows, 'id');
         $previewPhotos = $this->fetchPreviewPhotosPerWarehouse($warehouseIds);
-        $boxCounts    = $this->fetchBoxCounts($warehouseIds);
-        $priceMap     = $this->fetchFallbackPricePerSqm($warehouseIds);
+        $boxCounts    = $this->fetchBoxCounts($warehouseIds, $filters);
+        $priceMap     = $this->fetchFallbackPricePerSqm($warehouseIds, $filters);
+
+        if ($filters->rentalMode !== null) {
+            $rows = array_values(array_filter(
+                $rows,
+                fn(object $row) => ($boxCounts[$row->id]['total'] ?? 0) > 0,
+            ));
+        }
 
         return array_map(
             fn(object $row) => $this->hydrate(
@@ -265,29 +277,33 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
      * @param  int[]  $warehouseIds
      * @return array<int, array{total: int, available: int}>
      */
-    private function fetchBoxCounts(array $warehouseIds): array
+    private function fetchBoxCounts(array $warehouseIds, WarehouseFiltersDTO $filters): array
     {
         if (empty($warehouseIds)) {
             return [];
         }
 
-        $rows = DB::connection(self::DB_CONNECTION)
+        $query = DB::connection(self::DB_CONNECTION)
             ->table('b_iblock_element as ie')
             ->join(
-                'b_iblock_element_property as prop',
+                'b_iblock_element_property as status_prop',
                 fn($join) => $join
-                    ->on('prop.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
-                    ->where('prop.IBLOCK_PROPERTY_ID', '=', self::PROP_STATUS)
+                    ->on('status_prop.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
+                    ->where('status_prop.IBLOCK_PROPERTY_ID', '=', self::PROP_STATUS)
             )
             ->where('ie.IBLOCK_ID', self::IBLOCK_ID)
             ->where('ie.ACTIVE', 'Y')
             ->whereIn('ie.IBLOCK_SECTION_ID', $warehouseIds)
-            ->whereIn('prop.VALUE_ENUM', self::visibleStatusIds())
+            ->whereIn('status_prop.VALUE_ENUM', self::visibleStatusIds());
+
+        $this->applyRentalModeRowFilter($query, $filters);
+
+        $rows = $query
             ->groupBy('ie.IBLOCK_SECTION_ID')
             ->selectRaw(
                 'ie.IBLOCK_SECTION_ID as warehouse_id,
                  COUNT(*) as total,
-                 SUM(prop.VALUE_ENUM = ?) as available',
+                 SUM(status_prop.VALUE_ENUM = ?) as available',
                 [BitrixBoxStatusMapper::freeId()]
             )
             ->get();
@@ -309,13 +325,13 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
      * @param  int[]  $warehouseIds
      * @return array<int, float>
      */
-    private function fetchFallbackPricePerSqm(array $warehouseIds): array
+    private function fetchFallbackPricePerSqm(array $warehouseIds, WarehouseFiltersDTO $filters): array
     {
         if (empty($warehouseIds)) {
             return [];
         }
 
-        $rows = DB::connection(self::DB_CONNECTION)
+        $query = DB::connection(self::DB_CONNECTION)
             ->table('b_iblock_element as ie')
             ->join(
                 'b_iblock_element_property as status_prop',
@@ -340,7 +356,11 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             ->whereIn('ie.IBLOCK_SECTION_ID', $warehouseIds)
             ->whereIn('status_prop.VALUE_ENUM', self::visibleStatusIds())
             ->where('square_prop.VALUE_NUM', '>', 0)
-            ->where('cp.PRICE', '>', 0)
+            ->where('cp.PRICE', '>', 0);
+
+        $this->applyRentalModeRowFilter($query, $filters);
+
+        $rows = $query
             ->groupBy('ie.IBLOCK_SECTION_ID')
             ->selectRaw(
                 'ie.IBLOCK_SECTION_ID as warehouse_id, MIN(cp.PRICE / square_prop.VALUE_NUM) as price_per_sqm'
@@ -371,6 +391,48 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             BitrixBoxStatusMapper::freeing7Id(),
             BitrixBoxStatusMapper::freeing14Id(),
         ];
+    }
+
+    private function applyRentalModeRowFilter(Builder $query, WarehouseFiltersDTO $filters): void
+    {
+        $mode = $filters->rentalMode;
+        if ($mode === null) {
+            return;
+        }
+
+        if (RentalModeMapper::isCompound($mode)) {
+            $objectTypeIds = RentalModeMapper::objectTypeIdsFor($mode);
+            $rentTypeIds   = RentalModeMapper::rentTypeIdsFor($mode);
+
+            $query
+                ->leftJoin(
+                    'b_iblock_element_property as object_type_prop',
+                    fn($join) => $join
+                        ->on('object_type_prop.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
+                        ->where('object_type_prop.IBLOCK_PROPERTY_ID', '=', self::PROP_OBJECT_TYPE)
+                )
+                ->leftJoin(
+                    'b_iblock_element_property as rent_type_prop',
+                    fn($join) => $join
+                        ->on('rent_type_prop.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
+                        ->where('rent_type_prop.IBLOCK_PROPERTY_ID', '=', self::PROP_RENT_TYPE)
+                )
+                ->where(function (Builder $inner) use ($objectTypeIds, $rentTypeIds) {
+                    $inner
+                        ->whereIn('object_type_prop.VALUE_ENUM', $objectTypeIds)
+                        ->orWhereIn('rent_type_prop.VALUE_ENUM', $rentTypeIds);
+                });
+
+            return;
+        }
+
+        $query->join(
+            'b_iblock_element_property as object_type_prop',
+            fn($join) => $join
+                ->on('object_type_prop.IBLOCK_ELEMENT_ID', '=', 'ie.ID')
+                ->where('object_type_prop.IBLOCK_PROPERTY_ID', '=', self::PROP_OBJECT_TYPE)
+        )
+        ->whereIn('object_type_prop.VALUE_ENUM', RentalModeMapper::objectTypeIdsFor($mode));
     }
 
     // ------------------------------------------------------------------ //

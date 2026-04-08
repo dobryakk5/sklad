@@ -1,0 +1,113 @@
+.reviews-section {
+  padding: 72px 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+}
+
+.reviews-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.reviews-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.reviews-sub {
+  font-size: 15px;
+  color: var(--gray);
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.review-card {
+  background: var(--cream);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid var(--border);
+  transition: box-shadow var(--transition);
+}
+
+.review-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.review-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star-filled { color: #f59e0b; font-size: 16px; }
+.star-empty  { color: var(--border); font-size: 16px; }
+
+.review-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--dark);
+  flex: 1;
+}
+
+.review-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.review-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.review-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.review-author-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.review-date {
+  font-size: 12px;
+  color: var(--gray-light);
+}
+
+.review-source-link {
+  font-size: 16px;
+  color: var(--gray-light);
+  transition: color var(--transition);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.review-source-link:hover { color: var(--orange); }
+
+@media (max-width: 1024px) {
+  .reviews-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .reviews-section { padding: 48px 0; }
+  .reviews-grid { grid-template-columns: 1fr; }
+  .reviews-title { font-size: 22px; }
+}
