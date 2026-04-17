@@ -308,3 +308,46 @@ id  |subdir    |file_name                           |content_type|
 6635|iblock/bad|baddf5dd5b060498833f26439f92e822.jpg|image/jpeg  |
 6637|iblock/33e|33e61225a5309d1dc866567b035f3b81.jpg|image/jpeg  |
 6638|iblock/c09|c09dcbf01462df96dd50bfea92256705.jpg|image/jpeg  |
+
+
+SELECT ID, NAME, CODE, ACTIVE
+FROM b_iblock_element
+WHERE IBLOCK_ID = 1
+ORDER BY ID;
+
+ID     |NAME           |CODE|ACTIVE|
+-------+---------------+----+------+
+      1|Москва         |    |Y     |
+      2|Челябинск      |    |N     |
+      3|Самара         |    |N     |
+      4|Магнитогорск   |    |N     |
+8897914|Санкт-Петербург|    |Y     |
+
+
+SELECT
+    s.ID,
+    s.NAME,
+    s.CODE,
+    u.UF_LINK_REGION,
+    u.UF_ADDRESS
+FROM b_iblock_section s
+JOIN b_uts_iblock_40_section u ON u.VALUE_ID = s.ID
+WHERE s.IBLOCK_ID = 40
+ORDER BY u.UF_LINK_REGION, s.ID;
+
+ID |NAME                                    |CODE                                  |UF_LINK_REGION|UF_ADDRESS                                                              |
+---+----------------------------------------+--------------------------------------+--------------+------------------------------------------------------------------------+
+176|Склад на Новопетровской ТЦ Петровский   |sklad-na-novopetrovskoy-tts-petrovskiy|              |г. Москва ул. Новопетровская, д. 6, ТЦ «Петровский», паркинг, –2 уровень|
+ 63|Склад на ш. Энтузиастов                 |sklad-na-shosse-entuziastov-mkad      |             1|Балашиха, мкр-н Никольско-Архангельский, ПСЗ, д. 2а                     |
+ 64|Склад на Молодогвардейской              |sklad-na-molodogvardeyskoy            |             1|Молодогвардейская ул., д. 61, стр.&nbsp3                                |
+ 65|Склад на Нагатинской                    |sklad-na-nagatinskoy                  |             1|Нагатинская ул., д. 16, ТЦ&nbsp«Конфетти»                               |
+ 66|Склад на Звенигородском ш. (переезжает!)|sklad-na-zvenigorodskom-shosse        |             1|Звенигородское ш., д. 28, стр.&nbsp16                                   |
+ 67|Склад на Верхнелихоборской              |sklad-na-verkhnelikhoborskoy          |             1|Верхнелихоборская ул, д. 8а                                             |
+161|Склад на Ковшовой                       |sklad-natasha-kovshova                |             1|ул. Наташи Ковшовой, д. 2, стр.&nbsp1                                   |
+172|Склад на Кожуховской                    |sklad-na-7-j-kozhuhovskoj             |             1|7-я Кожуховская ул., д. 9, ТРЦ&nbsp«Мозаика», паркинг, 2&nbspуровень    |
+175|Склад на Новопетровской                 |sklad-na-novopetrovskoy-tc-petrovskiy |             1|Новопетровская ул., д. 6, ТЦ «Петровский», паркинг, –2&nbspуровень      |
+178|Склад на Малой Грузинской               |sklad-na-maloy-gruzinskoy             |             1|Малая Грузинская ул., д. 46                                             |
+163|Склад на Верхнем                        |sklad-na-verkhnem-pereulke            |       8897914|1-й Верхний пер., д. 2а                                                 |
+169|Склад в Говорово                        |sklad-v-govorovo                      |       8897914|ул. Маршала Говорова, д. 35, корп. 5, БЦ «Терминал», паркинг, 3 уровень |
+170|Склад на Говорова                       |sklad-na-govorova                     |       8897914|ул. Маршала Говорова, д. 35, корп. 5, БЦ «Терминал», паркинг, 3 уровень |
+

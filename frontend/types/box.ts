@@ -18,8 +18,8 @@ export interface Box {
   volume: number | null
   floor: BoxFloor       // нормализуется на бэкенде: "1 Этаж" → "first"
   status: BoxStatus     // нормализуется на бэкенде: 346 → "free"
-  object_type: string
-  rent_type: string
+  object_type: string | null
+  rent_type: string | null
   price_per_sqm: number | null
   price: number | null
   photo_url: string | null

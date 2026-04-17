@@ -68,9 +68,10 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             return null;
         }
 
+        $filters   = new WarehouseFiltersDTO();
         $photos    = $this->getPhotos($id);
-        $boxCounts = $this->fetchBoxCounts([$id]);
-        $priceMap  = $this->fetchFallbackPricePerSqm([$id]);
+        $boxCounts = $this->fetchBoxCounts([$id], $filters);
+        $priceMap  = $this->fetchFallbackPricePerSqm([$id], $filters);
 
         return $this->hydrate(
             $row,
@@ -93,10 +94,11 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             return null;
         }
 
+        $filters   = new WarehouseFiltersDTO();
         $id        = (int) $row->id;
         $photos    = $this->getPhotos($id);
-        $boxCounts = $this->fetchBoxCounts([$id]);
-        $priceMap  = $this->fetchFallbackPricePerSqm([$id]);
+        $boxCounts = $this->fetchBoxCounts([$id], $filters);
+        $priceMap  = $this->fetchFallbackPricePerSqm([$id], $filters);
 
         return $this->hydrate(
             $row,
@@ -451,12 +453,12 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
 
         return new WarehouseDTO(
             id:                   (int) $row->id,
-            name:                 (string) $row->name,
+            name:                 $this->cleanText($row->name ?? ''),
             code:                 (string) $row->code,
-            address:              trim((string) ($row->address ?? '')),
-            phone:                trim((string) ($row->phone ?? '')),
-            accessHours:          trim((string) ($row->access_hours ?? '')),
-            receptionHours:       trim((string) ($row->reception_hours ?? '')),
+            address:              $this->cleanText($row->address ?? ''),
+            phone:                $this->cleanText($row->phone ?? ''),
+            accessHours:          $this->cleanText($row->access_hours ?? ''),
+            receptionHours:       $this->cleanText($row->reception_hours ?? ''),
             lat:                  $lat,
             lng:                  $lng,
             metro:                $this->parseMetro($row->metro_raw ?? ''),
@@ -513,7 +515,7 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
 
         return array_values(
             array_filter(
-                array_map(fn($v) => trim((string) $v), $data),
+                array_map(fn($v) => $this->cleanText($v), $data),
                 fn($v) => $v !== ''
             )
         );
@@ -551,7 +553,7 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             return null;
         }
 
-        $trimmed = trim((string) $raw);
+        $trimmed = $this->cleanText($raw);
 
         return $trimmed !== '' ? $trimmed : null;
     }
@@ -572,8 +574,17 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             return null;
         }
 
-        $plain = trim(strip_tags($html));
+        $plain = $this->cleanText(strip_tags($html));
 
         return $plain !== '' ? $plain : null;
+    }
+
+    private function cleanText(mixed $raw): string
+    {
+        $text = preg_replace('/&nbsp;?/iu', ' ', (string) $raw) ?? (string) $raw;
+        $decoded = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $normalized = str_replace("\u{00A0}", ' ', $decoded);
+
+        return trim($normalized);
     }
 }

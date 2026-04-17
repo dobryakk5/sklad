@@ -1,13 +1,7 @@
 cd /var/www/sklad
 git pull
-
-cd /var/www/sklad/frontend
 docker compose up -d --force-recreate sklad-next
-
 systemctl restart sklad-api
-
-или
-cd /var/www/sklad && git pull && cd /var/www/sklad/frontend && docker compose up -d --force-recreate sklad-next && systemctl restart sklad-api
 
 -----------
 Как поднять API:

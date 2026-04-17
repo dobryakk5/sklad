@@ -1,0 +1,1262 @@
+==================== /home/bitrix/www/cron/autopay.php ====================
+<?php
+
+use Enum\Helper;
+use Api\Models\User;
+use Api\DomainServices\Orders\OrdersService;
+use Bitrix\Sale\Registry;
+use Bitrix\Sale\PaySystem;
+
+$_SERVER['DOCUMENT_ROOT'] = __DIR__ . '/..';
+
+require $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php";
+
+$rsUsers  = \CUser::GetList(
+    'id',
+    'asc',
+    [
+        'ACTIVE' => 'Y',
+        '>UF_AUTOPAYMEN_METHOD' => 0,
+    ],
+    [
+        'SELECT' => [
+            'ID',
+            'UF_AUTOPAYMEN_METHOD',
+        ]
+    ]
+);
+
+
+define('APF',  '/logs/autopayments.txt');
+
+while ($u = $rsUsers->Fetch()) {
+
+    if ($pmid = userAutopaymentEnabled($u['ID'])) {
+
+        print_r($u['ID'] . ' -> ' . $pmid . PHP_EOL);
+
+        // выбираем счета
+        $res = \CIBlockElement::GetList(
+            ['PROPERTY_DATE_CREATE' => 'DESC'],
+            [
+                'IBLOCK_ID' => 53,
+                'PROPERTY_USER' => $u['ID'],
+                'PROPERTY_STATUS' => INVOICE_STATUS_NOTPAID_ID,
+                '>=PROPERTY_DATE_CREATE' => date('Y-m-01 00:00:00'),
+                '!PROPERTY_TotalInvoiceAmount' => false,
+                'ACTIVE' => 'Y',
+            ],
+            false,
+            false,
+            [
+                'ID',
+                'IBLOCK_ID',
+                'PROPERTY_CONTRACT_GUID',
+                'PROPERTY_TotalInvoiceAmount',
+            ]
+        );
+
+        while ($invoice = $res->GetNext()) {
+
+            Helper::log(APF, "Начало автоплатежа: " . $u['ID'] . ", счёт: " . $invoice['ID']);
+
+            // Получает договор по его GUID
+            $contract = \Api\Models\Contract::getByGUID($invoice['PROPERTY_CONTRACT_GUID_VALUE']);
+
+            CSaleBasket::DeleteAll(CSaleBasket::GetBasketUserID());
+
+            // создаём корзину добавляем товар
+            $basket = \Bitrix\Sale\Basket::loadItemsForFUser($u['ID'], Bitrix\Main\Context::getCurrent()->getSite());
+            $item = $basket->createItem("catalog", $invoice['ID']);
+
+            $item->setFields([
+                "QUANTITY" => 1,
+                "CURRENCY" => Bitrix\Currency\CurrencyManager::getBaseCurrency(),
+                "LID" => Bitrix\Main\Context::getCurrent()->getSite(),
+                "PRODUCT_PROVIDER_CLASS" => 'CCatalogProductProvider',
+                'CUSTOM_PRICE' => 'Y',
+                "PRICE" => floatval($invoice['PROPERTY_TOTALINVOICEAMOUNT_VALUE']),
+            ]);
+
+            $basketPropertyCollection = $item->getPropertyCollection();
+
+            $arForPropCollection = [];
+            if (strlen($invoice['PROPERTY_CONTRACT_GUID_VALUE']) > 0) {
+                //записываем свойства
+                $arForPropCollection = array(
+                    array(
+                        "NAME" => "Номер договора",
+                        "CODE" => "CONTRACT_NUMBER",
+                        "VALUE" => $contract->getName(),
+                        "SORT" => 100,
+                    ),
+                    array(
+                        "NAME" => "ID договора",
+                        "CODE" => "CONTRACT_ID",
+                        "VALUE" => $contract->getId(),
+                        "SORT" => 110,
+                    ),
+                    array(
+                        "NAME" => "GUID договора",
+                        "CODE" => "CONTRACT_GUID",
+                        "VALUE" => $invoice['PROPERTY_CONTRACT_GUID_VALUE'],
+                        "SORT" => 120,
+                    )
+                );
+            }
+
+            $basketPropertyCollection->setProperty($arForPropCollection);
+
+            $user = new User(['ID' => $u['ID']]);
+
+            $orderService = new OrdersService();
+            $orderId = $orderService->createOrder($user, $basket, 3);
+
+            $registry = Registry::getInstance(Registry::REGISTRY_TYPE_ORDER);
+            $orderClassName = $registry->getOrderClassName();
+
+            if ($order = $orderClassName::loadByAccountNumber($orderId)) {
+                $paymentCollection = $order->getPaymentCollection();
+
+                $payment = $paymentCollection[0];
+                $payment->setField('PS_RECURRING_TOKEN', $pmid);
+
+                if (!$payment->isPaid()) {
+                    $paySystemService = PaySystem\Manager::getObjectById($payment->getPaymentSystemId());
+                    if (!empty($paySystemService)) {
+                        $initResult = $paySystemService->repeatRecurrent($payment);
+                        Helper::log(APF, "Результат автоплатежа: " . json_encode($initResult));
+                    }
+                }
+            }
+        }
+    }
+}
+
+==================== /home/bitrix/www/bitrix/modules/sale/handlers/paysystem/yandexcheckout/handler.php ====================
+<?php
+
+namespace Sale\Handlers\PaySystem;
+
+use Bitrix\Main\Localization;
+use Bitrix\Main;
+use Bitrix\Main\Localization\Loc;
+use Bitrix\Main\Request;
+use Bitrix\Main\Web\HttpClient;
+use Bitrix\Sale\Cashbox;
+use Bitrix\Sale\Payment;
+use Bitrix\Sale\PaymentCollection;
+use Bitrix\Sale\PaySystem;
+use Bitrix\Sale\PriceMaths;
+use Bitrix\Sale\Services\Base\RestrictionInfo;
+use Bitrix\Sale\Services\Base\RestrictionInfoCollection;
+use Bitrix\Seo;
+
+Localization\Loc::loadMessages(__FILE__);
+
+/**
+ * Class YandexCheckout
+ * @package Sale\Handlers\PaySystem
+ */
+class YandexCheckoutHandler
+        extends PaySystem\ServiceHandler
+        implements
+        PaySystem\IRefund,
+        PaySystem\IPartialHold,
+        PaySystem\IRecurring,
+        PaySystem\Cashbox\ISupportPrintCheck,
+        PaySystem\Cashbox\IFiscalizationAware
+{
+        const CMS_NAME = 'api_1c-bitrix';
+
+        /**
+         * @deprecated
+         */
+        public const PAYMENT_STATUS_WAITING_FOR_CAPTURE = 'waiting_for_capture';
+        /**
+         * @deprecated
+         */
+        public const PAYMENT_STATUS_PENDING = 'pending';
+        /**
+         * @deprecated
+         */
+        public const AUTH_TYPE = 'yandex';
+
+        public const PAYMENT_STATUS_SUCCEEDED = 'succeeded';
+        public const PAYMENT_STATUS_CANCELED = 'canceled';
+
+        public const PAYMENT_METHOD_SMART = '';
+        public const PAYMENT_METHOD_ALFABANK = 'alfabank';
+        public const PAYMENT_METHOD_BANK_CARD = 'bank_card';
+        public const PAYMENT_METHOD_YANDEX_MONEY = 'yoo_money';
+        public const PAYMENT_METHOD_SBERBANK = 'sberbank';
+        public const PAYMENT_METHOD_CASH = 'cash';
+        public const PAYMENT_METHOD_EMBEDDED = 'embedded';
+        public const PAYMENT_METHOD_TINKOFF_BANK = 'tinkoff_bank';
+        public const PAYMENT_METHOD_SBP = 'sbp';
+        public const PAYMENT_METHOD_SBER_LOAN = 'sber_loan';
+
+        public const MODE_SMART = '';
+        public const MODE_ALFABANK = 'alfabank';
+        public const MODE_BANK_CARD = 'bank_card';
+        public const MODE_YANDEX_MONEY = 'yoo_money';
+        public const MODE_SBERBANK = 'sberbank';
+        public const MODE_SBERBANK_SMS = 'sberbank_sms';
+        public const MODE_SBERBANK_QR = 'sberbank_qr';
+        public const MODE_CASH = 'cash';
+        public const MODE_MOBILE_BALANCE = 'mobile_balance';
+        public const MODE_EMBEDDED = 'embedded';
+        public const MODE_TINKOFF_BANK = 'tinkoff_bank';
+        public const MODE_SBP = 'sbp';
+        public const MODE_SBER_LOAN = 'sber_loan';
+
+        public const URL = 'https://api.yookassa.ru/v3';
+
+        private const CALLBACK_IP_LIST = [
+                '185.71.76.0/27',
+                '185.71.77.0/27',
+                '77.75.153.0/25',
+                '77.75.154.128/25',
+                '77.75.156.11',
+                '77.75.156.35',
+        ];
+
+        private const CONFIRMATION_TYPE_REDIRECT = "redirect";
+        private const CONFIRMATION_TYPE_EXTERNAL = "external";
+        private const CONFIRMATION_TYPE_EMBEDDED = "embedded";
+        private const CONFIRMATION_TYPE_QR = 'qr';
+
+        private const SEND_METHOD_HTTP_POST = "POST";
+        private const SEND_METHOD_HTTP_GET = "GET";
+
+        use PaySystem\Cashbox\CheckTrait;
+
+        /**
+         * @param Payment $payment
+         * @param Request|null $request
+         * @return PaySystem\ServiceResult
+         * @throws Main\ArgumentException
+         * @throws Main\ArgumentNullException
+         * @throws Main\ArgumentOutOfRangeException
+         * @throws Main\ArgumentTypeException
+         * @throws Main\NotImplementedException
+         * @throws Main\ObjectException
+         * @throws Main\ObjectPropertyException
+         * @throws Main\SystemException
+         */
+        public function initiatePay(Payment $payment, Request $request = null)
+        {
+                if ($request === null)
+                {
+                        $request = Main\Context::getCurrent()->getRequest();
+                }
+
+                $result = new PaySystem\ServiceResult();
+
+                $yandexPaymentData = [];
+
+                if ($payment->getField("PS_INVOICE_ID"))
+                {
+                        $yandexPaymentResult = $this->getYandexPayment($payment);
+                        if ($yandexPaymentResult->isSuccess())
+                        {
+                                $yandexPaymentData = $yandexPaymentResult->getData();
+                        }
+                }
+
+                $isNeedCreate = $this->needCreateYandexPayment($payment, $request, $yandexPaymentData);
+                if ($isNeedCreate)
+                {
+                        $createYandexPaymentResult = $this->createYandexPayment($payment, $request);
+                        if (!$createYandexPaymentResult->isSuccess())
+                        {
+                                return $createYandexPaymentResult;
+                        }
+
+                        $yandexPaymentData = $createYandexPaymentResult->getData();
+
+                        if (isset($yandexPaymentData['id']))
+                        {
+                                $result->setPsData(['PS_INVOICE_ID' => $yandexPaymentData['id']]);
+                        }
+                }
+
+                $template = $this->getTemplateName($request, $yandexPaymentData);
+
+                $this->setExtraParams(
+                        $this->getTemplateParams($payment, $template, $yandexPaymentData)
+                );
+
+                $showTemplateResult = $this->showTemplate($payment, $template);
+                if ($showTemplateResult->isSuccess())
+                {
+                        $result->setTemplate($showTemplateResult->getTemplate());
+                }
+                else
+                {
+                        $result->addErrors($showTemplateResult->getErrors());
+                }
+
+                if ($isNeedCreate && !empty($yandexPaymentData['confirmation']['confirmation_url']))
+                {
+                        $result->setPaymentUrl($yandexPaymentData['confirmation']['confirmation_url']);
+                }
+
+                if (!empty($yandexPaymentData['confirmation']['confirmation_data']) && $this->isQrPaymentType())
+                {
+                        $qrCode = self::generateQrCode($yandexPaymentData['confirmation']['confirmation_data']);
+                        if ($qrCode)
+                        {
+                                $result->setQr(base64_encode($qrCode));
+                        }
+                }
+
+                return $result;
+        }
+
+        /**
+         * @param Payment $payment
+         * @param Request $request
+         * @param array $additionalParams
+         * @return bool
+         */
+        protected function needCreateYandexPayment(Payment $payment, Request $request, $additionalParams = []): bool
+        {
+                if (($additionalParams['status'] ?? '') === self::PAYMENT_STATUS_SUCCEEDED)
+                {
+                        return false;
+                }
+
+                $template = $this->getTemplateName($request, $additionalParams);
+
+                return $template !== 'template_query';
+        }
+
+        /**
+         * @param Payment $payment
+         * @param $template
+         * @param array $additionalParams
+         * @return array
+         * @throws Main\ArgumentException
+         * @throws Main\ArgumentNullException
+         * @throws Main\ArgumentOutOfRangeException
+         * @throws Main\ArgumentTypeException
+         * @throws Main\NotImplementedException
+         * @throws Main\ObjectPropertyException
+         * @throws Main\SystemException
+         */
+        protected function getTemplateParams(Payment $payment, $template, $additionalParams = []) : array
+        {
+                $params = [
+                        'SUM' => PriceMaths::roundPrecision($payment->getSum()),
+                        'CURRENCY' => $payment->getField('CURRENCY'),
+                ];
+
+                if ($template === 'template')
+                {
+                        $params['URL'] = $additionalParams['confirmation']['confirmation_url'] ?? '';
+                }
+                elseif ($template === 'template_query')
+                {
+                        $phoneFields = $this->getPhoneFields();
+                        $phoneFields = $phoneFields[$this->service->getField('PS_MODE')] ?? [];
+
+                        $params['FIELDS'] = $this->getPaymentMethodFields();
+                        $params['PHONE_FIELDS'] = $phoneFields;
+                        $params['PHONE_NUMBER'] = $this->getPhoneNumber($payment) ?? "";
+                        $params['PAYMENT_METHOD'] = $this->service->getField('PS_MODE');
+                        $params['PAYMENT_ID'] = $payment->getId();
+                        $params['PAYSYSTEM_ID'] = $this->service->getField('ID');
+                        $params['RETURN_URL'] = $this->getReturnUrl($payment);
+                }
+                elseif ($template === 'template_embedded')
+                {
+                        $params['CONFIRMATION_TOKEN'] = $additionalParams['confirmation']['confirmation_token'] ?? '';
+                        $params['RETURN_URL'] = $this->getReturnUrl($payment);
+                }
+                elseif ($template === 'template_qr')
+                {
+                        $params['URL'] = $additionalParams['confirmation']['confirmation_data'] ?? '';
+                        $params['QR_CODE_IMAGE'] = '';
+
+                        $qrCode = self::generateQrCode($params['URL']);
+                        if ($qrCode)
+                        {
+                                $params['QR_CODE_IMAGE'] = base64_encode($qrCode);
+                        }
+                }
+
+                return $params;
+        }
+
+        /**
+         * @param Request $request
+         * @param array $additionalParams
+         * @return string
+         */
+
+==================== /home/bitrix/www/local/php_interface/init.php ====================
+<?php
+
+use Bitrix\Main;
+
+define('PATH_ROOT', $_SERVER['DOCUMENT_ROOT']);
+define('PATH_LOCAL', PATH_ROOT . '/local/');
+
+
+require_once PATH_ROOT . '/bitrix/php_interface/init.php';
+require_once(PATH_LOCAL . 'Api/Helpers/functions.php');
+require_once(PATH_LOCAL . 'Api/define.php');
+require_once(PATH_LOCAL . 'Api/DomainServices/UserNotPaidDocumentService.php');
+
+require_once PATH_ROOT . '/local/php_interface/lib/Mobile_Detect.php';
+
+require_once PATH_ROOT . '/local/php_interface/email.php';
+
+require_once PATH_ROOT . '/local/php_interface/payment.php';
+require_once PATH_ROOT . '/local/php_interface/client.php';
+
+
+//ограничение для службы оплаты
+CModule::IncludeModule('sale');
+require_once PATH_ROOT . '/local/php_interface/lib/salerestrictions.php';
+
+Bitrix\Main\EventManager::getInstance()->addEventHandler(
+    'sale',
+    'onSalePaySystemRestrictionsClassNamesBuildList',
+    'myPayFunction'
+);
+
+function myPayFunction()
+{
+    return new \Bitrix\Main\EventResult(
+        \Bitrix\Main\EventResult::SUCCESS,
+        array(
+            '\MyPaySystemRestriction' => '/local/php_interface/include/mypayrestriction.php',
+        )
+    );
+}
+
+//ограничение для службы оплаты
+
+
+spl_autoload_register(function ($class) {
+    $file = PATH_LOCAL . str_replace('\\', '/', $class) . '.php';
+    if (file_exists($file)) {
+        require $file;
+    }
+});
+
+
+require_once PATH_ROOT . '/local/vendor/autoload.php';
+
+use Bitrix\Main\Loader;
+use Bitrix\Highloadblock as HL;
+use Bitrix\Main\Entity;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\Writer\PngWriter;
+
+Loader::registerAutoLoadClasses(null, [
+    'CPriority_ext' => '/local/php_interface/lib/CPriority_ext.php',
+]);
+
+// Событие после создания элемента инфоблока
+AddEventHandler("iblock", "OnAfterIBlockElementAdd", array("Events", "OnAfterIBlockElementAdd"));
+
+
+class Events
+{
+    // создаем обработчик события "OnAfterIBlockElementAdd"
+    public static function OnAfterIBlockElementAdd(&$arFields)
+    {
+        \Api\DomainServices\EventsHandler::OnAfterIBlockElementAdd($arFields);
+        return true;
+    }
+}
+
+
+if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/local/php_interface/lib/customtypehtml.php"));
+include $_SERVER['DOCUMENT_ROOT'] . "/local/php_interface/lib/customtypehtml.php";
+
+
+//AddEventHandler("main", "OnEndBufferContent", "ChangeMyContentTagB"); //Удаление тега b из контента не статичных страниц
+//
+//function ChangeMyContent(&$content)
+//{
+//    $content = sanitize_output($content);
+//}
+//
+//function sanitize_output($buffer)
+//{
+//    $buffer = preg_replace('<b>', '<span class="bold">', $buffer);
+//    $buffer = preg_replace('</b>', '</span>', $buffer);
+//    return $buffer;
+//}
+
+AddEventHandler("main", "OnEndBufferContent", "ResetLinks");
+
+function ResetLinks(&$content)
+{
+    $content = str_replace('/services/vremennoe-khranenie/', '/services/vremennoe-khranenie/', $content);
+    $content = str_replace('/services/dostavka/', '/services/dostavka/', $content);
+    $content = str_replace('/rental_catalog/', '/rental_catalog/', $content);
+    $content = str_replace('/rental_catalog/', '/rental_catalog/', $content);
+
+    $content = str_replace('khranenie-mebeli/', 'khranenie-mebeli/', $content);
+    $content = str_replace('khranenie-mebeli/', 'khranenie-mebeli/', $content);
+    $content = str_replace('khranenie-mebeli/', 'khranenie-mebeli/', $content);
+    $content = str_replace('khranenie-mebeli/', 'khranenie-mebeli/', $content);
+    //    $content = str_replace('khranenie-veshchey-s-kvartiry-kotoruyu-planiruyut-sdat-v-arendu/', 'storage/', $content);
+    $content = str_replace('price/', 'price/', $content);
+    $content = str_replace('<a class="link" href="sklad-vremennogo-khraneniya/"></a>', '<a class="link" href="/services/vremennoe-khranenie/"></a>', $content);
+}
+
+
+/* Таргет Консалт Компани: получаем utm метки */
+function getUtmByUserId($USER_ID)
+{
+    global $APPLICATION;
+    $UTM = array();
+    if (CModule::IncludeModule("statistic")) {
+        $arFilter = array(
+            "USER_ID" => $USER_ID,
+            "CHECK_PERMISSIONS" => "N"
+        );
+        if ($rs = CGuest::GetList(($by = "ID"), ($order = "DESC"), $arFilter, $is_filtered)) {
+            while ($ar = $rs->Fetch()) {
+                $url = $ar['FIRST_URL_TO'];
+                parse_str(parse_url($url, PHP_URL_QUERY), $GET);
+                $UTM['UTM_MEDIUM'] = $GET['utm_medium'] ? $GET['utm_medium'] : $ar['FIRST_REFERER1'];
+                $UTM['UTM_SOURCE'] = $GET['utm_source'] ? $GET['utm_source'] : $ar['FIRST_REFERER2'];
+                $UTM['UTM_CAMPAIGN'] = $GET['utm_campaign'] ? $GET['utm_campaign'] : $ar['FIRST_REFERER3'];
+                $UTM['UTM_CONTENT'] = $GET['utm_content'];
+                $UTM['UTM_TERM'] = $GET['utm_term'];
+            }
+        }
+        if (empty($UTM)) {
+            if ($APPLICATION->get_cookie('utm_source'))
+                $UTM['UTM_SOURCE'] = $APPLICATION->get_cookie('utm_source');
+            if ($APPLICATION->get_cookie('utm_medium'))
+                $UTM['UTM_MEDIUM'] = $APPLICATION->get_cookie('utm_medium');
+            if ($APPLICATION->get_cookie('utm_term'))
+                $UTM['UTM_TERM'] = $APPLICATION->get_cookie('utm_term');
+            if ($APPLICATION->get_cookie('utm_campaign'))
+                $UTM['UTM_CAMPAIGN'] = $APPLICATION->get_cookie('utm_campaign');
+            if ($APPLICATION->get_cookie('utm_content'))
+                $UTM['UTM_CONTENT'] = $APPLICATION->get_cookie('utm_content');
+        }
+    }
+    return $UTM;
+}
+
+AddEventHandler('main', 'OnProlog', 'UtmOnProlog');
+function UtmOnProlog()
+{
+    global $APPLICATION;
+    $utmArray = array('utm_source', 'utm_medium', 'utm_term', 'utm_campaign', 'utm_content');
+    foreach ($utmArray as $utmItem) {
+        if (isset($_GET[$utmItem]) && $_GET[$utmItem]) {
+            $APPLICATION->set_cookie($utmItem, htmlspecialcharsEx($_GET[$utmItem]));
+            $prefix = COption::GetOptionString("main", "cookie_name", "BITRIX_SM");
+            $_COOKIE[$prefix . '_' . $utmItem] = htmlspecialcharsEx($_GET[$utmItem]);
+        }
+    }
+    if ($_SERVER['HTTP_REFERER']) {
+        $url = parse_url($_SERVER['HTTP_REFERER']);
+        if ($url['host'] != $_SERVER['SERVER_NAME']) { // Внешний переход
+            if (!isset($_GET['utm_source'])) {
+                $utm_source = $url['host'];
+                $utm_medium = 'referral';
+                if (stripos($utm_source, 'yandex') !== false) {
+                    $utm_source = 'yandex';
+                    $utm_medium = 'organic';
+                }
+                if (stripos($utm_source, 'google') !== false) {
+                    $utm_source = 'google';
+                    $utm_medium = 'organic';
+                }
+                $APPLICATION->set_cookie('utm_source', $utm_source);
+                $APPLICATION->set_cookie('utm_medium', $utm_medium);
+                $prefix = COption::GetOptionString("main", "cookie_name", "BITRIX_SM");
+                $_COOKIE[$prefix . '_utm_source'] = $utm_source;
+                $_COOKIE[$prefix . '_utm_medium'] = $utm_medium;
+            }
+        }
+    }
+}
+
+
+AddEventHandler('iblock', 'OnAfterIBlockElementAdd', 'OnAfterIBlockElementHandler');
+AddEventHandler('iblock', 'OnAfterIBlockElementUpdate', 'OnAfterIBlockElementHandler');
+
+function getFirstKey($array)
+{
+    if (is_array($array)) {
+        reset($array);
+        $first_key = key($array);
+        return $first_key;
+    }
+    return null;
+}
+
+// Автоматически заполняем поле STORE_ID в договоре
+function OnAfterIBlockElementHandler(&$arFields)
+{
+    if ($arFields['IBLOCK_ID'] == 52) {
+        if (CModule::IncludeModule("iblock")) {
+            $_p_box = $arFields["PROPERTY_VALUES"][509];
+            if (is_array($_p_box[getFirstKey($_p_box)])) {
+                $_p_box_value = $_p_box[getFirstKey($_p_box)]["VALUE"];
+            } else {
+                $_p_box_value = $_p_box[getFirstKey($_p_box)];
+            }
+
+            $arSelect = ["ID", 'IBLOCK_ID', "IBLOCK_SECTION_ID"];
+            $arFilter = ["IBLOCK_ID" => 40, 'ID' => $_p_box_value];
+            $res = CIBlockElement::GetList([], $arFilter, false, false, $arSelect);
+            if (is_object($res)) {
+                $ob = $res->GetNextElement();
+                $box_data = $ob->GetFields();
+                CIBlockElement::SetPropertyValuesEx($arFields["ID"], 52, ['STORE_ID' => $box_data['IBLOCK_SECTION_ID']]);
+            }
+        }
+    }
+}
+
+/*
+Очищаем корзину после сохранения заказа
+*/
+\Bitrix\Main\EventManager::getInstance()->addEventHandler(
+    'sale',
+    'OnSaleOrderSaved',
+    'SetOrderDescription'
+);
+function SetOrderDescription(\Bitrix\Main\Event $event)
+{
+    Bitrix\Main\Loader::includeModule("sale");
+    Bitrix\Main\Loader::includeModule("catalog");
+    Bitrix\Main\Loader::includeModule("iblock");
+    Bitrix\Main\Loader::includeModule("currency");
+
+    $order = $event->getParameter("ENTITY");
+    $isNew = $event->getParameter("IS_NEW");
+
+    if ($isNew) {
+        $basket = $order->getBasket();
+        $basketItems = $basket->getBasketItems();
+        $jsonParams = [];
+        $orderDescription = '';
+
+        $rwUser = \Bitrix\Main\UserTable::getList([
+            'filter' => ["ID" => $order->getUserId()],
+            'select' => ['NAME', 'LAST_NAME', 'SECOND_NAME', "EMAIL"]
+        ])->fetch();
+        $user = ($rwUser['LAST_NAME'] ?? '') . ' ' . ($rwUser['NAME'] ?? '') . ' ' . ($rwUser['SECOND_NAME'] ?? '');
+
+==================== /home/bitrix/www/local/templates/aspro-priority/components/bitrix/news.list/autopay/ajax.php ====================
+<?php
+
+use Bitrix\Sale\PaySystem,
+        Bitrix\Main\Web\HttpClient;
+
+require_once $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php";
+require_once $_SERVER['DOCUMENT_ROOT'] . "/local/php_interface/yookassa.php";
+
+\Bitrix\Main\Loader::includeModule('sale');
+
+global $USER, $USER_FIELD_MANAGER;
+
+$ps_settings = \CSalePaySystemAction::getParamsByConsumer('PAYSYSTEM_' . 7, 's1');
+
+$yookassa = new Yookassa(
+        $ps_settings['YANDEX_CHECKOUT_SHOP_ID']['VALUE'],
+        $ps_settings['YANDEX_CHECKOUT_SECRET_KEY']['VALUE'],
+        new HttpClient([])
+);
+
+/**
+ * Запрос создания нового способа оплаты
+ */
+if ($_REQUEST["ACTION"] == 'plug_autopay' || $_REQUEST["ACTION"] == 'link_card') {
+        try {
+                if (!$USER->IsAuthorized()) {
+                        throw new Exception('Пользователь не авторизован', 4);
+                }
+
+                $rc = $yookassa->requestConfirmation();
+
+                // сохранить способ оплаты в юзера
+                $pid = (new CIBlockElement)->Add(
+                        [
+                                "IBLOCK_SECTION_ID" => false,
+                                "IBLOCK_ID"             => 69,
+                                "NAME"                          => $rc['id'],
+                                "ACTIVE"                => "N",
+                                'PROPERTY_VALUES'       => [
+                                        'PM_STATUS' => $rc['status'],
+                                        'PM_SAVED' => $rc['saved'],
+                                        'AUTOPAY' => $_REQUEST["ACTION"] == 'plug_autopay' ? 'Y' : 'N',
+                                ],
+                        ]
+                );
+
+                if ($pid) {
+
+                        $USER_FIELD_MANAGER->Update("USER", $USER->GetID(), ["UF_AUTOPAYMEN_METHOD" => $pid]);
+
+                        exit(json_encode([
+                                'success' => 'Y',
+                                'url' => $rc['url'],
+                        ]));
+                } else {
+                        throw new Exception('Не удалось привязатать способ оплаты к пользователю', 3);
+                }
+        } catch (\Exception $e) {
+                exit(json_encode([
+                        'success' => 'N',
+                        'error' => /*$e->getMessage()*/ 'Произошла ошибка при попытке подключения автоплатежа. Обратитесь к администрации (' . $e->getCode() . ')',
+                        'code' => $e->getCode(),
+                ]));
+        }
+}
+/**
+ * Сохраняем признак передавать merchant_id в yookassa или нет
+ */
+if ($_REQUEST["ACTION"] == 'save_merchant') {
+        try {
+                if (!$USER->IsAuthorized()) {
+                        throw new Exception('Пользователь не авторизован', 4);
+                }
+
+                $rsUser = CUser::GetByID($USER->GetID());
+                $arUser = $rsUser->Fetch();
+
+                $current = $arUser['UF_SAVE_PAYMENT_MERCHANT'] == 'Y' || $arUser['UF_SAVE_PAYMENT_MERCHANT'] == 1 ? 0 : 1;
+
+                $USER_FIELD_MANAGER->Update("USER", $USER->GetID(), ["UF_SAVE_PAYMENT_MERCHANT" => $current]);
+
+                exit(json_encode([
+                        'success' => 'Y',
+                        'current' => $current,
+                ]));
+
+        } catch (\Exception $e) {
+                exit(json_encode([
+                        'success' => 'N',
+                        'error' => /*$e->getMessage()*/ 'Произошла ошибка при выполнении операции. Обратитесь к администрации (' . $e->getCode() . ')',
+                        'code' => $e->getCode(),
+                ]));
+        }
+}
+
+/**
+ * Отключение автоплатежа
+ */
+if ($_REQUEST["ACTION"] == 'unlink_card') {
+        try {
+                if (!$USER->IsAuthorized()) {
+                        throw new Exception('Пользователь не авторизован', 4);
+                }
+
+                $rsUser = CUser::GetByID($USER->GetID());
+                $arUser = $rsUser->Fetch();
+
+                if ($arUser['UF_AUTOPAYMEN_METHOD']) {
+
+                        $res = CIBlockElement::GetByID($arUser['UF_AUTOPAYMEN_METHOD']);
+                        if ($pm = $res->Fetch()) {
+
+                                if ($pm['ACTIVE'] == 'Y') {
+                                        (new CIBlockElement)->Update(
+                                                $pm['ID'],
+                                                ['ACTIVE' => 'N'],
+                                        );
+                                }
+
+                                exit(json_encode([
+                                        'success' => 'Y',
+                                ]));
+                        } else {
+                                throw new Exception('Вы не подключали автоплатёж ранее', 33);
+                        }
+                } else {
+                        throw new Exception('Вы не подключали автоплатёж ранее', 3);
+                }
+        } catch (\Exception $e) {
+                exit(json_encode([
+                        'success' => 'N',
+                        'error' => /*$e->getMessage()*/ 'Произошла ошибка при попытке отключения автоплатежа. Обратитесь к администрации (' . $e->getCode() . ')',
+                        'code' => $e->getCode(),
+                ]));
+        }
+}
+
+
+/**
+ * Отключение автоплатежа
+ */
+if ($_REQUEST["ACTION"] == 'unplug') {
+        try {
+                if (!$USER->IsAuthorized()) {
+                        throw new Exception('Пользователь не авторизован', 4);
+                }
+
+                $rsUser = CUser::GetByID($USER->GetID());
+                $arUser = $rsUser->Fetch();
+
+                if ($arUser['UF_AUTOPAYMEN_METHOD']) {
+
+                        $res = CIBlockElement::GetByID($arUser['UF_AUTOPAYMEN_METHOD']);
+                        if ($pm = $res->Fetch()) {
+                                CIBlockElement::SetPropertyValues(
+                                        $pm['ID'],
+                                        $pm['IBLOCK_ID'],
+                                        'N',
+                                        'AUTOPAY'
+                                );
+                                exit(json_encode([
+                                        'success' => 'Y',
+                                ]));
+                        } else {
+                                throw new Exception('Вы не подключали автоплатёж ранее', 33);
+                        }
+                } else {
+                        throw new Exception('Вы не подключали автоплатёж ранее', 3);
+                }
+        } catch (\Exception $e) {
+                exit(json_encode([
+                        'success' => 'N',
+                        'error' => /*$e->getMessage()*/ 'Произошла ошибка при попытке отключения автоплатежа. Обратитесь к администрации (' . $e->getCode() . ')',
+                        'code' => $e->getCode(),
+                ]));
+        }
+}
+
+
+
+require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php");
+
+==================== /home/bitrix/www/local/php_interface/yookassa.php ====================
+<?php
+
+class Yookassa
+{
+    const API_URL = 'https://api.yookassa.ru';
+    const API_VERSION = 'v3';
+
+    private $shopId;
+    private $secret;
+    /**
+     * @var object Bitrix\Main\Web\HttpClient
+     */
+    private $httpClient;
+
+    public function __construct($shopId, $secret, $httpClient)
+    {
+        $this->shopId = $shopId;
+        $this->secret = $secret;
+        $this->httpClient = $httpClient;
+    }
+
+    /**
+     * Запрос на получение объекта способа оплаты
+     */
+    public function requestConfirmation()
+    {
+        $result = $this->request('POST', 'payment_methods', [
+            'confirmation' => [
+                'type' => 'redirect',
+                'return_url' => $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . '/cabinet/?autopayment=success',
+            ],
+            'type' => 'bank_card',
+        ]);
+
+        if (!isset($result->confirmation->confirmation_url)) {
+            throw new Exception('Не поступил confirmation_url', 1);
+        }
+
+        return ['id' => $result->id, 'status' => $result->status, 'saved' => $result->saved, 'url' => $result->confirmation->confirmation_url];
+    }
+
+    public function request($method = 'GET', $url, $data = null, $headers = null)
+    {
+        $this->httpClient->setHeader('Idempotence-Key', $this->getIdempotenceKey());
+        $this->httpClient->setHeader('Content-Type', 'application/json');
+        $this->httpClient->setAuthorization($this->shopId, $this->secret);
+
+        $this->httpClient->query($method, self::API_URL . '/' . self::API_VERSION . '/' . $url, json_encode($data));
+
+        $result = json_decode($this->httpClient->getResult());
+
+        // dd($result);
+
+        if ($this->httpClient->getStatus() != 200) {
+            throw new \Exception('Ошибка: ' . $result->description);
+        } else {
+        }
+
+        return $result;
+    }
+
+    public function createPayment($sum, $pmid, $comment)
+    {
+        $result = $this->request('POST', 'payments', [
+            'amount' => array(
+                'value' => floatval($sum),
+                'currency' => 'RUB',
+            ),
+            'capture' => true,
+            'payment_method_id' => $pmid,
+            'description' => $comment,
+        ]);
+
+        return $result;
+    }
+
+    private function getIdempotenceKey(): string
+    {
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
+        );
+    }
+}
+
+==================== /home/bitrix/www/order/index.php ====================
+<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetTitle("Оформление заказа");
+?>
+
+<?$APPLICATION->IncludeComponent(
+        "bitrix:sale.order.ajax", 
+        "order_custom", 
+        array(
+                "PAY_FROM_ACCOUNT" => "N",
+                "ONLY_FULL_PAY_FROM_ACCOUNT" => "N",
+                "COUNT_DELIVERY_TAX" => "Y",
+                "COUNT_DISCOUNT_4_ALL_QUANTITY" => "N",
+                "ALLOW_AUTO_REGISTER" => "Y",
+                "SEND_NEW_USER_NOTIFY" => "Y",
+                "DELIVERY_NO_AJAX" => "Y",
+                "DELIVERY_NO_SESSION" => "N",
+                "TEMPLATE_LOCATION" => "popup",
+                "DELIVERY_TO_PAYSYSTEM" => "p2d",
+                "USE_PREPAYMENT" => "N",
+                "PROP_1" => "",
+                "PROP_3" => "",
+                "PROP_2" => "",
+                "PROP_4" => "",
+                "SHOW_STORES_IMAGES" => "N",
+                "PATH_TO_BASKET" => SITE_DIR."cart/",
+                "PATH_TO_PERSONAL" => SITE_DIR."personal/",
+                "PATH_TO_PAYMENT" => SITE_DIR."order/payment/",
+                "PATH_TO_AUTH" => SITE_DIR."auth/",
+                "SET_TITLE" => "Y",
+                "PRODUCT_COLUMNS" => "",
+                "DISABLE_BASKET_REDIRECT" => "N",
+                "DISPLAY_IMG_WIDTH" => "90",
+                "DISPLAY_IMG_HEIGHT" => "90",
+                "COMPONENT_TEMPLATE" => "order_custom",
+                "ALLOW_NEW_PROFILE" => "Y",
+                "SHOW_PAYMENT_SERVICES_NAMES" => "Y",
+                "COMPATIBLE_MODE" => "Y",
+                "BASKET_IMAGES_SCALING" => "adaptive",
+                "ALLOW_USER_PROFILES" => "Y",
+                "TEMPLATE_THEME" => "red",
+                "SHOW_TOTAL_ORDER_BUTTON" => "Y",
+                "SHOW_PAY_SYSTEM_LIST_NAMES" => "Y",
+                "SHOW_PAY_SYSTEM_INFO_NAME" => "Y",
+                "SHOW_DELIVERY_LIST_NAMES" => "Y",
+                "SHOW_DELIVERY_INFO_NAME" => "Y",
+                "SHOW_DELIVERY_PARENT_NAMES" => "Y",
+                "BASKET_POSITION" => "after",
+                "SHOW_BASKET_HEADERS" => "Y",
+                "DELIVERY_FADE_EXTRA_SERVICES" => "Y",
+                "SHOW_COUPONS_BASKET" => "Y",
+                "SHOW_COUPONS_DELIVERY" => "N",
+                "SHOW_COUPONS_PAY_SYSTEM" => "N",
+                "SHOW_NEAREST_PICKUP" => "N",
+                "DELIVERIES_PER_PAGE" => "8",
+                "PAY_SYSTEMS_PER_PAGE" => "8",
+                "PICKUPS_PER_PAGE" => "5",
+                "SHOW_MAP_IN_PROPS" => "N",
+                "SHOW_MAP_FOR_DELIVERIES" => array(
+                        0 => "1",
+                ),
+                "PROPS_FADE_LIST_1" => array(
+                        0 => "1",
+                        1 => "2",
+                        2 => "3",
+                        3 => "4",
+                        4 => "7",
+                ),
+                "PROPS_FADE_LIST_2" => array(
+                        0 => "11",
+                        1 => "12",
+                        2 => "13",
+                        3 => "14",
+                        4 => "15",
+                        5 => "16",
+                ),
+                "PRODUCT_COLUMNS_VISIBLE" => array(
+                        0 => "PREVIEW_PICTURE",
+                        1 => "DISCOUNT_PRICE_PERCENT_FORMATED",
+                        2 => "PRICE_FORMATED",
+                ),
+                "ADDITIONAL_PICT_PROP_13" => "-",
+                "ADDITIONAL_PICT_PROP_14" => "-",
+                "PRODUCT_COLUMNS_HIDDEN" => array(
+                        0 => "PROPERTY_SQUARE",
+                        1 => "PROPERTY_VOLUME",
+                        2 => "PROPERTY_FLOOR",
+                        3 => "PROPERTY_BOX_NUMBER",
+                ),
+                "USE_YM_GOALS" => "N",
+                "USE_CUSTOM_MAIN_MESSAGES" => "Y",
+                "USE_CUSTOM_ADDITIONAL_MESSAGES" => "N",
+                "USE_CUSTOM_ERROR_MESSAGES" => "N",
+                "SHOW_ORDER_BUTTON" => "final_step",
+                "SKIP_USELESS_BLOCK" => "N",
+                "SERVICES_IMAGES_SCALING" => "adaptive",
+                "COMPOSITE_FRAME_MODE" => "A",
+                "COMPOSITE_FRAME_TYPE" => "AUTO",
+                "ALLOW_APPEND_ORDER" => "Y",
+                "SHOW_NOT_CALCULATED_DELIVERIES" => "L",
+                "SPOT_LOCATION_BY_GEOIP" => "Y",
+                "SHOW_VAT_PRICE" => "Y",
+                "USE_PRELOAD" => "Y",
+                "SHOW_PICKUP_MAP" => "N",
+                "PICKUP_MAP_TYPE" => "yandex",
+                "SHOW_COUPONS" => "N",
+                "USER_CONSENT" => "Y",
+                "USER_CONSENT_ID" => "1",
+                "USER_CONSENT_IS_CHECKED" => "Y",
+                "USER_CONSENT_IS_LOADED" => "N",
+                "ACTION_VARIABLE" => "soa-action",
+                "EMPTY_BASKET_HINT_PATH" => "/",
+                "USE_PHONE_NORMALIZATION" => "Y",
+                "ADDITIONAL_PICT_PROP_40" => "GALLERY",
+                "HIDE_ORDER_DESCRIPTION" => "N",
+                "USE_ENHANCED_ECOMMERCE" => "Y",
+                "MESS_AUTH_BLOCK_NAME" => "Авторизация",
+                "MESS_REG_BLOCK_NAME" => "Регистрация",
+                "MESS_BASKET_BLOCK_NAME" => "Товары в заказе",
+                "MESS_REGION_BLOCK_NAME" => "Тип плательщика",
+                "MESS_PAYMENT_BLOCK_NAME" => "Оплата",
+                "MESS_DELIVERY_BLOCK_NAME" => "Доставка",
+                "MESS_BUYER_BLOCK_NAME" => "Покупатель",
+                "MESS_BACK" => "Назад",
+                "MESS_FURTHER" => "Далее",
+                "MESS_EDIT" => "изменить",
+                "MESS_ORDER" => "Оформить заказ",
+                "MESS_PRICE" => "Стоимость",
+                "MESS_PERIOD" => "Срок доставки",
+                "MESS_NAV_BACK" => "Назад",
+                "MESS_NAV_FORWARD" => "Вперед",
+                "ADDITIONAL_PICT_PROP_48" => "-",
+                "ADDITIONAL_PICT_PROP_50" => "-",
+                "ADDITIONAL_PICT_PROP_53" => "-",
+                "YM_GOALS_COUNTER" => "50400436",
+                "YM_GOALS_INITIALIZE" => "BX-order-init",
+                "YM_GOALS_EDIT_REGION" => "BX-region-edit",
+                "YM_GOALS_EDIT_DELIVERY" => "BX-delivery-edit",
+                "YM_GOALS_EDIT_PICKUP" => "BX-pickUp-edit",
+                "YM_GOALS_EDIT_PAY_SYSTEM" => "BX-paySystem-edit",
+                "YM_GOALS_EDIT_PROPERTIES" => "BX-properties-edit",
+                "YM_GOALS_EDIT_BASKET" => "BX-basket-edit",
+                "YM_GOALS_NEXT_REGION" => "BX-region-next",
+                "YM_GOALS_NEXT_DELIVERY" => "BX-delivery-next",
+                "YM_GOALS_NEXT_PICKUP" => "BX-pickUp-next",
+                "YM_GOALS_NEXT_PAY_SYSTEM" => "BX-paySystem-next",
+                "YM_GOALS_NEXT_PROPERTIES" => "BX-properties-next",
+                "YM_GOALS_NEXT_BASKET" => "BX-basket-next",
+                "YM_GOALS_SAVE_ORDER" => "BX-order-save",
+                "DATA_LAYER_NAME" => "dataLayer",
+                "BRAND_PROPERTY" => "",
+                "ADDITIONAL_PICT_PROP_32" => "-",
+                "ADDITIONAL_PICT_PROP_34" => "-",
+                "ADDITIONAL_PICT_PROP_60" => "-"
+        ),
+        false
+);?>
+
+<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>
+
+==================== /home/bitrix/www/cart/index.php ====================
+<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetPageProperty("description", "Мой заказ. АльфаСклад - индивидуальное хранение вещей в Москве! ✔ Выгодные условия, акции, скидки и спецпредложения! Обращайтесь по телефону: ☎ +7 (495) 154-40-98");
+$APPLICATION->SetTitle("Мой заказ");?>
+
+
+<?$APPLICATION->IncludeComponent(
+        "custom:sale.basket.basket", 
+        "cart", 
+        array(
+                "COMPONENT_TEMPLATE" => "cart",
+                "DEFERRED_REFRESH" => "N",
+                "USE_DYNAMIC_SCROLL" => "Y",
+                "SHOW_FILTER" => "N",
+                "SHOW_RESTORE" => "N",
+                "COLUMNS_LIST_EXT" => array(
+                        0 => "PREVIEW_PICTURE",
+                        1 => "DELETE",
+                        2 => "DELAY",
+                        3 => "SUM",
+                        4 => "PROPERTY_SQUARE",
+                        5 => "PROPERTY_VOLUME",
+                        6 => "PROPERTY_FLOOR",
+                        7 => "PROPERTY_BOX_NUMBER",
+                ),
+                "COLUMNS_LIST_MOBILE" => array(
+                        0 => "DELETE",
+                        1 => "DELAY",
+                        2 => "SUM",
+                        3 => "PROPERTY_SQUARE",
+                        4 => "PROPERTY_VOLUME",
+                        5 => "PROPERTY_FLOOR",
+                        6 => "PROPERTY_BOX_NUMBER",
+                ),
+                "TEMPLATE_THEME" => "red",
+                "TOTAL_BLOCK_DISPLAY" => array(
+                        0 => "bottom",
+                ),
+                "DISPLAY_MODE" => "extended",
+                "PRICE_DISPLAY_MODE" => "Y",
+                "SHOW_DISCOUNT_PERCENT" => "N",
+                "DISCOUNT_PERCENT_POSITION" => "bottom-right",
+                "PRODUCT_BLOCKS_ORDER" => "props,sku,columns",
+                "USE_PRICE_ANIMATION" => "N",
+                "LABEL_PROP" => array(
+                ),
+                "PATH_TO_ORDER" => "/order/",
+                "HIDE_COUPON" => "Y",
+                "PRICE_VAT_SHOW_VALUE" => "N",
+                "USE_PREPAYMENT" => "N",
+                "QUANTITY_FLOAT" => "Y",
+                "CORRECT_RATIO" => "Y",
+                "AUTO_CALCULATION" => "Y",
+                "SET_TITLE" => "N",
+                "ACTION_VARIABLE" => "basketAction",
+                "COMPATIBLE_MODE" => "Y",
+                "EMPTY_BASKET_HINT_PATH" => "/",
+                "ADDITIONAL_PICT_PROP_40" => "-",
+                "BASKET_IMAGES_SCALING" => "adaptive",
+                "USE_GIFTS" => "N",
+                "GIFTS_PLACE" => "BOTTOM",
+                "GIFTS_BLOCK_TITLE" => "Выберите один из подарков",
+                "GIFTS_HIDE_BLOCK_TITLE" => "N",
+                "GIFTS_TEXT_LABEL_GIFT" => "Подарок",
+                "GIFTS_PRODUCT_QUANTITY_VARIABLE" => "quantity",
+                "GIFTS_PRODUCT_PROPS_VARIABLE" => "prop",
+                "GIFTS_SHOW_OLD_PRICE" => "N",
+                "GIFTS_SHOW_DISCOUNT_PERCENT" => "Y",
+                "GIFTS_MESS_BTN_BUY" => "Выбрать",
+                "GIFTS_MESS_BTN_DETAIL" => "Подробнее",
+                "GIFTS_PAGE_ELEMENT_COUNT" => "4",
+                "GIFTS_CONVERT_CURRENCY" => "N",
+                "GIFTS_HIDE_NOT_AVAILABLE" => "N",
+                "USE_ENHANCED_ECOMMERCE" => "Y",
+                "ADDITIONAL_PICT_PROP_48" => "-",
+                "ADDITIONAL_PICT_PROP_50" => "-",
+                "ADDITIONAL_PICT_PROP_53" => "-",
+                "DATA_LAYER_NAME" => "dataLayer",
+                "BRAND_PROPERTY" => "",
+                "COMPOSITE_FRAME_MODE" => "A",
+                "COMPOSITE_FRAME_TYPE" => "AUTO",
+                "OFFERS_PROPS" => array(
+                ),
+                "ADDITIONAL_PICT_PROP_34" => "-",
+                "ADDITIONAL_PICT_PROP_60" => "-"
+        ),
+        false
+);?>
+
+
+<?$APPLICATION->IncludeComponent(
+        "bitrix:news.list", 
+        "cart-banner", 
+        array(
+                "COMPONENT_TEMPLATE" => "cart-banner",
+                "IBLOCK_TYPE" => "aspro_priority_advt",
+                "IBLOCK_ID" => "49",
+                "NEWS_COUNT" => "1",
+                "SORT_BY1" => "ID",
+                "SORT_ORDER1" => "DESC",
+                "SORT_BY2" => "SORT",
+                "SORT_ORDER2" => "ASC",
+                "FILTER_NAME" => "",
+                "FIELD_CODE" => array(
+                        0 => "NAME",
+                        1 => "DETAIL_PICTURE",
+                        2 => "",
+                ),
+                "PROPERTY_CODE" => array(
+                        0 => "TARGET_BLANK",
+                        1 => "LINK",
+                        2 => "",
+                ),
+                "CHECK_DATES" => "Y",
+                "DETAIL_URL" => "",
+                "AJAX_MODE" => "N",
+                "AJAX_OPTION_JUMP" => "N",
+                "AJAX_OPTION_STYLE" => "Y",
+                "AJAX_OPTION_HISTORY" => "N",
+                "AJAX_OPTION_ADDITIONAL" => "",
+                "CACHE_TYPE" => "A",
+                "CACHE_TIME" => "36000000",
+                "CACHE_FILTER" => "N",
+                "CACHE_GROUPS" => "N",
+                "PREVIEW_TRUNCATE_LEN" => "",
+                "ACTIVE_DATE_FORMAT" => "d.m.Y",
+                "SET_TITLE" => "N",
+                "SET_BROWSER_TITLE" => "N",
+                "SET_META_KEYWORDS" => "N",
+                "SET_META_DESCRIPTION" => "N",
+                "SET_LAST_MODIFIED" => "N",
+                "INCLUDE_IBLOCK_INTO_CHAIN" => "N",
+                "ADD_SECTIONS_CHAIN" => "N",
+                "HIDE_LINK_WHEN_NO_DETAIL" => "N",
+                "PARENT_SECTION" => "",
+                "PARENT_SECTION_CODE" => "",
+                "INCLUDE_SUBSECTIONS" => "N",
+                "STRICT_SECTION_CHECK" => "N",
+                "DISPLAY_DATE" => "N",
+                "DISPLAY_NAME" => "N",
+                "DISPLAY_PICTURE" => "N",
+                "DISPLAY_PREVIEW_TEXT" => "N",
+                "PAGER_TEMPLATE" => ".default",
+                "DISPLAY_TOP_PAGER" => "N",
+                "DISPLAY_BOTTOM_PAGER" => "N",
+                "PAGER_TITLE" => "Новости",
+                "PAGER_SHOW_ALWAYS" => "N",
+                "PAGER_DESC_NUMBERING" => "N",
+                "PAGER_DESC_NUMBERING_CACHE_TIME" => "36000",
+                "PAGER_SHOW_ALL" => "N",
+                "PAGER_BASE_LINK_ENABLE" => "N",
+                "SET_STATUS_404" => "N",
+                "SHOW_404" => "N",
+                "MESSAGE_404" => "",
+                "TEMPLATE_THEME" => "blue",
+                "MEDIA_PROPERTY" => "",
+                "SLIDER_PROPERTY" => "",
+                "SEARCH_PAGE" => "/search/",
+                "USE_RATING" => "N",
+                "USE_SHARE" => "N"
+        ),
+        false
+);?>
+
+
+
+<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>[root@3002929-cv12737 ~]# 

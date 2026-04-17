@@ -21,10 +21,16 @@ function matchesPath(pathname: string, href: string) {
   return current === target || current.startsWith(`${target}/`)
 }
 
+function closeDropdownMenu() {
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur()
+  }
+}
+
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/online')) {
     return <>{children}</>
   }
 
@@ -63,6 +69,7 @@ function SiteHeader() {
                     key={mode}
                     href={getRentalCatalogPath(mode)}
                     className={`nav-dropdown-link${matchesPath(pathname, getRentalCatalogPath(mode)) ? ' nav-active' : ''}`}
+                    onClick={closeDropdownMenu}
                   >
                     {config.label}
                   </Link>
@@ -71,13 +78,20 @@ function SiteHeader() {
             </div>
           </div>
           <div className="nav-dropdown">
-            <Link href="/services" className={`nav-link nav-dropdown-trigger${isServicesActive ? ' nav-active' : ''}`}>Услуги</Link>
+            <Link
+              href="/services"
+              className={`nav-link nav-dropdown-trigger${isServicesActive ? ' nav-active' : ''}`}
+              onClick={closeDropdownMenu}
+            >
+              Услуги
+            </Link>
             <div className="nav-dropdown-menu">
               {serviceLinks.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`nav-dropdown-link${matchesPath(pathname, item.href) ? ' nav-active' : ''}`}
+                  onClick={closeDropdownMenu}
                 >
                   {item.label}
                 </Link>

@@ -38,11 +38,14 @@ function GridSkeleton() {
 
 async function WarehousesAsync({ mode }: { mode: RentalMode }) {
   const warehouses = await getWarehouses({ rental_mode: mode })
+  const visibleWarehouses = mode === 'cell'
+    ? warehouses.filter((warehouse) => warehouse.available_boxes_count > 0)
+    : warehouses
   const config = getRentalModeConfig(mode)
 
   return (
     <WarehouseGrid
-      warehouses={warehouses}
+      warehouses={visibleWarehouses}
       rentalMode={mode}
       title="Выберите удобный склад"
       emptyMessage={`Пока нет доступных складов для раздела «${config.label.toLowerCase()}».`}

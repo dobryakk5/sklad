@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Suspense } from 'react'
 import { getReviews, getWarehouses } from '@/lib/api'
 import { ReviewsSection } from '@/components/home/ReviewsSection'
@@ -96,6 +97,21 @@ export default function HomePage() {
                 <span className="stat-label">{label}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="online-discount">
+        <div className="container">
+          <div className="online-discount-card">
+            <p className="online-discount-text">
+              <span className="online-discount-badge">Скидка</span>
+              При онлайн-аренде бокса оформление проходит полностью на сайте, без звонка и визита в офис.
+            </p>
+
+            <Link href="/online" className="btn-primary online-discount-cta">
+              Онлайн-аренда
+            </Link>
           </div>
         </div>
       </section>
