@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Geologica } from 'next/font/google'
+import localFont from 'next/font/local'
 import SiteChrome from '@/components/SiteChrome'
 import './globals.css'
 import './catalog.css'
@@ -16,9 +16,14 @@ export const metadata: Metadata = {
     'Боксы, контейнеры, ячейки, кладовки и помещения для хранения вещей в Москве. Доступ 24/7, охрана и удобный выбор склада онлайн.',
 }
 
-const geologica = Geologica({
-  subsets: ['latin', 'cyrillic'],
-  weight: ['300', '400', '500', '600'],
+const geologica = localFont({
+  src: [
+    {
+      path: './fonts/Geologica-Variable.ttf',
+      weight: '100 900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-geologica',
   display: 'swap',
 })

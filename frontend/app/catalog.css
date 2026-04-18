@@ -199,6 +199,18 @@
   border-color: var(--dark);
   color: #fff;
 }
+.size-chip:disabled,
+.size-chip--disabled {
+  background: #F5F2EC;
+  border-color: #E7E1D7;
+  color: #B3AEA5;
+  cursor: not-allowed;
+}
+.size-chip:disabled:hover,
+.size-chip--disabled:hover {
+  border-color: #E7E1D7;
+  color: #B3AEA5;
+}
 
 /* Filters meta */
 .filters-meta {

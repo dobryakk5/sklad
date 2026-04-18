@@ -3,7 +3,7 @@ import type { Box } from '@/types/box'
 import type { RentalMode } from '@/types/rental'
 
 import { formatNumberRu } from '@/lib/format'
-import { getRentalModeConfig } from '@/lib/rentalModes'
+import { getCatalogModeCopy } from '@/lib/rentalModes'
 import { BITRIX_BASE, RENTAL_CATALOG_URL } from '@/lib/constants'
 
 const STATUS_LABEL: Record<Box['status'], string> = {
@@ -63,7 +63,7 @@ function BoxIcon() {
 interface Props {
   box: Box
   warehouseSlug: string
-  mode: RentalMode
+  mode?: RentalMode
   index: number
 }
 
@@ -76,11 +76,13 @@ export function BoxCard({ box, warehouseSlug, mode, index }: Props) {
   const pricePerSqm = formatNumberRu(box.price_per_sqm)
 
   const rentUrl = `${RENTAL_CATALOG_URL}?box=${box.code_1c}`
-  const modeConfig = getRentalModeConfig(mode)
+  const modeCopy = getCatalogModeCopy(mode)
   const displayTitle = box.box_number
     ? `#${box.box_number}`
-    : (box.object_type ?? box.rent_type ?? modeConfig.itemLabel)
-  const detailHref = `/warehouses/${warehouseSlug}/boxes/${box.id}?mode=${mode}`
+    : (box.object_type ?? box.rent_type ?? modeCopy.itemLabel)
+  const detailHref = mode
+    ? `/warehouses/${warehouseSlug}/boxes/${box.id}?mode=${mode}`
+    : `/warehouses/${warehouseSlug}/boxes/${box.id}`
 
   return (
     <article

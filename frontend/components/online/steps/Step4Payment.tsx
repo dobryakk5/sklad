@@ -16,7 +16,8 @@ const paymentLogos = [
 
 interface Props {
   warehouse: Warehouse
-  box: Box
+  boxes: Box[]
+  cart: Record<number, number>
   renter: RenterFormData
   checkoutAttemptId: string
   onPrev: () => void
@@ -28,7 +29,7 @@ function fmt(d: Date) {
 
 function buildCheckoutComment({
   warehouse,
-  box,
+  cartItems,
   renter,
   checkin,
   endOfMonth,
@@ -37,7 +38,7 @@ function buildCheckoutComment({
   total,
 }: {
   warehouse: Warehouse
-  box: Box
+  cartItems: { box: Box; qty: number; monthlyPrice: number | null }[]
   renter: RenterFormData
   checkin: Date
   endOfMonth: Date
@@ -48,14 +49,22 @@ function buildCheckoutComment({
   const lines = [
     'Онлайн-аренда бокса с сайта A',
     `Склад: ${warehouse.name}${warehouse.address ? `, ${warehouse.address}` : ''}`,
-    `Бокс: ${box.object_type || 'Бокс'}${box.box_number ? ` №${box.box_number}` : ''}`,
-    `Код 1С: ${box.code_1c || '—'}`,
-    `Площадь: ${box.square != null ? `${box.square} м²` : '—'}`,
+  ]
+
+  cartItems.forEach(({ box, qty }) => {
+    lines.push(
+      `Бокс: ${box.object_type || 'Бокс'}${box.box_number ? ` №${box.box_number}` : ''}${qty > 1 ? ` × ${qty}` : ''}`,
+      `Код 1С: ${box.code_1c || '—'}`,
+      `Площадь: ${box.square != null ? `${box.square} м²` : '—'}`,
+    )
+  })
+
+  lines.push(
     `Период оплаты: с ${fmt(checkin)} по ${fmt(endOfMonth)}`,
     `Аренда: ${rentalCost != null ? `${rentalCost.toLocaleString('ru-RU')} руб.` : '—'}`,
     `Депозит: ${deposit != null ? `${deposit.toLocaleString('ru-RU')} руб.` : '—'}`,
     `Итого: ${total.toLocaleString('ru-RU')} руб.`,
-  ]
+  )
 
   if (renter.payerType === 'legal') {
     lines.push(
@@ -76,30 +85,41 @@ function buildCheckoutComment({
   return lines.join('\n')
 }
 
-export default function Step4Payment({ warehouse, box, renter, checkoutAttemptId, onPrev }: Props) {
+export default function Step4Payment({ warehouse, boxes, cart, renter, checkoutAttemptId, onPrev }: Props) {
   const [agreed, setAgreed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Цена: сначала берём price, потом считаем через price_per_sqm * square
-  const monthlyPrice = box.price
-    ?? (box.price_per_sqm != null && box.square != null
-      ? Math.round(box.price_per_sqm * box.square)
-      : null)
+  const cartItems = Object.entries(cart)
+    .map(([idStr, qty]) => {
+      const box = boxes.find(b => b.id === Number(idStr))
+      if (!box || qty <= 0) return null
+      const monthlyPrice = box.price
+        ?? (box.price_per_sqm != null && box.square != null
+          ? Math.round(box.price_per_sqm * box.square)
+          : null)
+      return { box, qty, monthlyPrice }
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
 
-  // Даты
   const today      = new Date()
   const checkin    = new Date(today); checkin.setDate(today.getDate() + 3)
   const endOfMonth = new Date(checkin.getFullYear(), checkin.getMonth() + 1, 0)
   const daysLeft   = endOfMonth.getDate() - checkin.getDate() + 1
 
-  const rentalCost = monthlyPrice != null
-    ? Math.round((monthlyPrice / endOfMonth.getDate()) * daysLeft)
+  const allHavePrice = cartItems.every(i => i.monthlyPrice != null)
+  const totalMonthly = allHavePrice
+    ? cartItems.reduce((sum, i) => sum + (i.monthlyPrice! * i.qty), 0)
     : null
-  const deposit    = monthlyPrice != null ? Math.round(monthlyPrice * 0.5) : null
+
+  const rentalCost = totalMonthly != null
+    ? Math.round((totalMonthly / endOfMonth.getDate()) * daysLeft)
+    : null
+  const deposit    = totalMonthly != null ? Math.round(totalMonthly * 0.5) : null
   const total      = rentalCost != null && deposit != null ? rentalCost + deposit : null
 
-  const checkoutDisabled = !agreed || total == null || loading || !box.code_1c
+  const allHaveCode1c = cartItems.every(i => !!i.box.code_1c)
+  const checkoutDisabled = !agreed || total == null || loading || !allHaveCode1c
 
   async function handleCheckout() {
     if (checkoutDisabled || total == null) {
@@ -122,19 +142,23 @@ export default function Step4Payment({ warehouse, box, renter, checkoutAttemptId
             lastName: renter.payerType === 'individual' ? renter.lastName : '',
             middleName: renter.payerType === 'individual' ? renter.middleName : '',
           },
-          items: [
-            {
+          items: cartItems.map(({ box, qty, monthlyPrice }) => {
+            const itemTotal = monthlyPrice != null
+              ? Math.round(((monthlyPrice * qty) / endOfMonth.getDate()) * daysLeft)
+                + Math.round(monthlyPrice * qty * 0.5)
+              : null
+            return {
               productXmlId: box.code_1c,
-              quantity: 1,
-              price: total,
-            },
-          ],
+              quantity: qty,
+              ...(itemTotal != null ? { price: itemTotal } : {}),
+            }
+          }),
           pricing: {
             grandTotal: total,
           },
           comment: buildCheckoutComment({
             warehouse,
-            box,
+            cartItems,
             renter,
             checkin,
             endOfMonth,
@@ -173,7 +197,6 @@ export default function Step4Payment({ warehouse, box, renter, checkoutAttemptId
 
         {/* Left: order summary */}
         <div>
-          {/* Selected box card */}
           <div style={{ border: '1px solid #e0e0e0', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
             {/* Warehouse */}
             <div style={{ background: '#fafafa', padding: '12px 16px', borderBottom: '1px solid #e8e8e8', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -184,30 +207,31 @@ export default function Step4Payment({ warehouse, box, renter, checkoutAttemptId
               </span>
             </div>
 
-            {/* Box row */}
-            <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-              <div>
-                <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
-                  {box.object_type} {box.square != null ? `${box.square} м²` : ''}
-                  {box.volume != null ? `, объём ${box.volume} м³` : ''}
-                </p>
-                <p style={{ fontSize: 12, color: '#aaa' }}>№{box.box_number || '—'}</p>
+            {cartItems.map(({ box, qty, monthlyPrice }) => (
+              <div key={box.id} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, borderBottom: '1px solid #f0f0f0' }}>
+                <div>
+                  <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                    {box.object_type} {box.square != null ? `${box.square} м²` : ''}
+                    {box.volume != null ? `, объём ${box.volume} м³` : ''}
+                    {qty > 1 && <span style={{ marginLeft: 6, fontWeight: 400, color: '#888' }}>× {qty}</span>}
+                  </p>
+                  <p style={{ fontSize: 12, color: '#aaa' }}>№{box.box_number || '—'}</p>
+                </div>
+                <div>
+                  {monthlyPrice != null ? (
+                    <span style={{ fontSize: 14, fontWeight: 600, color: '#e8000d' }}>
+                      {(monthlyPrice * qty).toLocaleString('ru')} руб. / мес.
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 13, color: '#888' }}>Цена по запросу</span>
+                  )}
+                </div>
               </div>
-              <div>
-                {monthlyPrice != null ? (
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#e8000d' }}>
-                    {monthlyPrice.toLocaleString('ru')} руб. / мес.
-                  </span>
-                ) : (
-                  <span style={{ fontSize: 13, color: '#888' }}>Цена по запросу</span>
-                )}
-              </div>
-            </div>
+            ))}
 
-            {/* Subtotal */}
             <div style={{ background: '#fafafa', padding: '10px 16px', borderTop: '1px solid #e8e8e8', display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#555' }}>
-              <span>Итого: {box.square != null ? `Площадь ${box.square} м²` : ''} · 1 помещение</span>
-              {monthlyPrice != null && <strong>{monthlyPrice.toLocaleString('ru')} руб. / мес.</strong>}
+              <span>{cartItems.length} {cartItems.length === 1 ? 'помещение' : cartItems.length < 5 ? 'помещения' : 'помещений'}</span>
+              {totalMonthly != null && <strong>{totalMonthly.toLocaleString('ru')} руб. / мес.</strong>}
             </div>
           </div>
 

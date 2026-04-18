@@ -25,7 +25,7 @@ const SORT_OPTIONS = [
 ]
 
 // Диапазоны площадей для быстрого выбора
-const SIZE_RANGES = [
+export const SIZE_RANGES = [
   { label: 'До 3 м²',   min: 0,  max: 3 },
   { label: '3–8 м²',    min: 3,  max: 8 },
   { label: '8–20 м²',   min: 8,  max: 20 },
@@ -37,11 +37,20 @@ interface Props {
   totalCount: number
   filteredCount: number
   countLabel?: string
+  availableSizeRanges: boolean[]
   onChange: (next: Partial<BoxFilters>) => void
   onReset: () => void
 }
 
-export function BoxFiltersBar({ filters, totalCount, filteredCount, countLabel = 'помещений', onChange, onReset }: Props) {
+export function BoxFiltersBar({
+  filters,
+  totalCount,
+  filteredCount,
+  countLabel = 'помещений',
+  availableSizeRanges,
+  onChange,
+  onReset,
+}: Props) {
   const hasActiveFilters =
     (filters.status && filters.status !== 'available') ||
     filters.floor ||
@@ -112,14 +121,17 @@ export function BoxFiltersBar({ filters, totalCount, filteredCount, countLabel =
       <div className="filters-sizes">
         <span className="filter-label">Площадь:</span>
         <div className="size-chips">
-          {SIZE_RANGES.map(({ label, min, max }) => {
+          {SIZE_RANGES.map(({ label, min, max }, index) => {
             const isActive =
               filters.square_min === min &&
               (max === 999 ? filters.square_max === undefined : filters.square_max === max)
+            const isAvailable = availableSizeRanges[index] ?? false
             return (
               <button
                 key={label}
-                className={`size-chip${isActive ? ' active' : ''}`}
+                type="button"
+                disabled={!isAvailable}
+                className={`size-chip${isActive ? ' active' : ''}${!isAvailable ? ' size-chip--disabled' : ''}`}
                 onClick={() => handleSizeRange(min, max)}
               >
                 {label}

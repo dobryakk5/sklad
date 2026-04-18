@@ -48,6 +48,7 @@ function SiteHeader() {
   const rentalModes = ['box', 'container', 'cell', 'storage', 'room'] as const
   const isServicesActive = matchesPath(pathname, '/services')
   const isRentalActive = matchesPath(pathname, '/rental_catalog')
+  const isPriceActive = matchesPath(pathname, '/price')
 
   return (
     <header className="site-header">
@@ -98,7 +99,7 @@ function SiteHeader() {
               ))}
             </div>
           </div>
-          <a href="https://alfasklad.ru/price/" className="nav-link" target="_blank" rel="noopener">Цены</a>
+          <Link href="/price" className={`nav-link${isPriceActive ? ' nav-active' : ''}`}>Цены</Link>
         </nav>
 
         <div className="header-actions">

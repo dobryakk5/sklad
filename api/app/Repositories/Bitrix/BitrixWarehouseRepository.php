@@ -285,6 +285,8 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             return [];
         }
 
+        $availableStatusIds = BitrixBoxStatusMapper::availableIds();
+
         $query = DB::connection(self::DB_CONNECTION)
             ->table('b_iblock_element as ie')
             ->join(
@@ -305,8 +307,8 @@ final class BitrixWarehouseRepository implements WarehouseRepositoryInterface
             ->selectRaw(
                 'ie.IBLOCK_SECTION_ID as warehouse_id,
                  COUNT(*) as total,
-                 SUM(status_prop.VALUE_ENUM = ?) as available',
-                [BitrixBoxStatusMapper::freeId()]
+                 SUM(CASE WHEN status_prop.VALUE_ENUM IN (?, ?, ?) THEN 1 ELSE 0 END) as available',
+                $availableStatusIds
             )
             ->get();
 

@@ -5,9 +5,9 @@ import type { Box, BoxFilters } from '@/types/box'
 import type { RentalMode } from '@/types/rental'
 import type { Warehouse } from '@/types/warehouse'
 import { formatNumberRu } from '@/lib/format'
-import { getRentalModeConfig } from '@/lib/rentalModes'
+import { getCatalogModeCopy } from '@/lib/rentalModes'
 import { BoxCard } from './BoxCard'
-import { BoxFiltersBar } from './BoxFiltersBar'
+import { BoxFiltersBar, SIZE_RANGES } from './BoxFiltersBar'
 
 const DEFAULT_FILTERS: BoxFilters = {
   status: 'available',
@@ -40,18 +40,49 @@ function sortBoxes(boxes: Box[], sort: BoxFilters['sort']): Box[] {
 interface Props {
   boxes: Box[]
   warehouse: Warehouse
-  mode: RentalMode
+  mode?: RentalMode
 }
 
 export function BoxGrid({ boxes, warehouse, mode }: Props) {
   const [filters, setFilters] = useState<BoxFilters>(DEFAULT_FILTERS)
-  const modeConfig = getRentalModeConfig(mode)
+  const modeCopy = getCatalogModeCopy(mode)
 
   const handleChange = (next: Partial<BoxFilters>) => {
     setFilters((prev) => ({ ...prev, ...next }))
   }
 
   const handleReset = () => setFilters(DEFAULT_FILTERS)
+
+  const boxesForSizeAvailability = useMemo(() => {
+    let result = boxes
+
+    if (filters.status && filters.status !== 'all') {
+      if (filters.status === 'available') {
+        result = result.filter((b) => AVAILABLE_STATUSES.has(b.status))
+      } else {
+        result = result.filter((b) => b.status === filters.status)
+      }
+    }
+
+    if (filters.floor) {
+      result = result.filter((b) => b.floor === filters.floor)
+    }
+
+    return result
+  }, [boxes, filters.status, filters.floor])
+
+  const availableSizeRanges = useMemo(
+    () => SIZE_RANGES.map(({ min, max }) => (
+      boxesForSizeAvailability.some((box) => {
+        if (box.square == null) {
+          return false
+        }
+
+        return box.square >= min && box.square <= max
+      })
+    )),
+    [boxesForSizeAvailability],
+  )
 
   const filtered = useMemo(() => {
     let result = boxes
@@ -81,7 +112,7 @@ export function BoxGrid({ boxes, warehouse, mode }: Props) {
     return sortBoxes(result, filters.sort)
   }, [boxes, filters])
 
-  const freeCount = boxes.filter((b) => b.status === 'free').length
+  const availableCount = boxes.filter((b) => AVAILABLE_STATUSES.has(b.status)).length
   const warehousePrice = formatNumberRu(warehouse.price_per_sqm)
 
   return (
@@ -90,9 +121,9 @@ export function BoxGrid({ boxes, warehouse, mode }: Props) {
       <div className="warehouse-info-bar">
         <div className="winfo-main">
           <div className="winfo-badge">
-            {freeCount > 0
-              ? <><span className="winfo-dot winfo-dot--green" />Есть свободные {modeConfig.pluralLabel.toLowerCase()}</>
-              : <><span className="winfo-dot winfo-dot--red" />Все {modeConfig.pluralLabel.toLowerCase()} заняты</>
+            {availableCount > 0
+              ? <><span className="winfo-dot winfo-dot--green" />Есть свободные {modeCopy.pluralLabel.toLowerCase()}</>
+              : <><span className="winfo-dot winfo-dot--red" />Все {modeCopy.pluralLabel.toLowerCase()} заняты</>
             }
           </div>
           <div className="winfo-row">
@@ -118,7 +149,8 @@ export function BoxGrid({ boxes, warehouse, mode }: Props) {
         filters={filters}
         totalCount={boxes.length}
         filteredCount={filtered.length}
-        countLabel={modeConfig.listingLabel}
+        countLabel={modeCopy.listingLabel}
+        availableSizeRanges={availableSizeRanges}
         onChange={handleChange}
         onReset={handleReset}
       />
@@ -146,7 +178,7 @@ export function BoxGrid({ boxes, warehouse, mode }: Props) {
               <path d="M16 6 L32 6 L42 14" stroke="#C4C0B8" strokeWidth="1.5" />
             </svg>
           </div>
-          <p className="box-empty-title">Сейчас нет подходящих {modeConfig.listingLabel}</p>
+          <p className="box-empty-title">Сейчас нет подходящих {modeCopy.listingLabel}</p>
           <p className="box-empty-sub">Попробуйте изменить фильтры или выбрать другой склад</p>
           <button className="box-empty-reset" onClick={handleReset}>
             Сбросить фильтры

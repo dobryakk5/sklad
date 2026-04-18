@@ -41,7 +41,7 @@ export default function OnlineWizard({ warehouses }: Props) {
   const [boxes, setBoxes]               = useState<Box[]>([])
   const [boxesLoading, setBoxesLoading] = useState(false)
   const [boxesError, setBoxesError]     = useState<string | null>(null)
-  const [selectedBoxId, setSelectedBoxId] = useState<number | null>(null)
+  const [cart, setCart]                 = useState<Record<number, number>>({})
 
   // Step 3
   const [form, setForm] = useState<RenterFormData>(defaultForm)
@@ -51,7 +51,7 @@ export default function OnlineWizard({ warehouses }: Props) {
   useEffect(() => {
     if (!selectedWarehouseId) return
     setBoxes([])
-    setSelectedBoxId(null)
+    setCart({})
     setBoxesError(null)
     setBoxesLoading(true)
 
@@ -64,12 +64,31 @@ export default function OnlineWizard({ warehouses }: Props) {
       })
   }, [selectedWarehouseId])
 
+  const cartKey = Object.entries(cart).sort().map(([k, v]) => `${k}:${v}`).join(',')
   useEffect(() => {
     setCheckoutAttemptId(createCheckoutAttemptId())
-  }, [selectedWarehouseId, selectedBoxId, form])
+  }, [selectedWarehouseId, cartKey, form])
 
   const selectedWarehouse = warehouses.find(w => w.id === selectedWarehouseId) ?? null
-  const selectedBox       = boxes.find(b => b.id === selectedBoxId) ?? null
+  const cartHasItems = Object.values(cart).some(qty => qty > 0)
+
+  function handleCartChange(id: number, qty: number) {
+    setCart(prev => {
+      const next = { ...prev }
+      if (qty <= 0) delete next[id]
+      else next[id] = qty
+      return next
+    })
+  }
+
+  function handleReset() {
+    setSelectedWarehouseId(null)
+    setCart({})
+    setBoxes([])
+    setBoxesError(null)
+    setForm(defaultForm)
+    setStep(1)
+  }
 
   return (
     <div className="online-wizard">
@@ -77,6 +96,22 @@ export default function OnlineWizard({ warehouses }: Props) {
         currentStep={step}
         onStepClick={(s) => s <= step && setStep(s)}
       />
+
+      {step > 1 && selectedWarehouse && (
+        <div className="online-selected-warehouse">
+          <div className="online-selected-warehouse__info">
+            <span className="online-selected-warehouse__label">Выбранный склад:</span>
+            <span className="online-selected-warehouse__name">{selectedWarehouse.name}</span>
+          </div>
+          <button
+            type="button"
+            className="online-selected-warehouse__reset"
+            onClick={handleReset}
+          >
+            Сбросить
+          </button>
+        </div>
+      )}
 
       <div className="online-step-card">
         {step === 1 && (
@@ -93,8 +128,8 @@ export default function OnlineWizard({ warehouses }: Props) {
             boxes={boxes}
             loading={boxesLoading}
             error={boxesError}
-            selectedBoxId={selectedBoxId}
-            onSelect={setSelectedBoxId}
+            cart={cart}
+            onCartChange={handleCartChange}
             onNext={() => setStep(3)}
             onPrev={() => setStep(1)}
           />
@@ -109,10 +144,11 @@ export default function OnlineWizard({ warehouses }: Props) {
           />
         )}
 
-        {step === 4 && selectedWarehouse && selectedBox && (
+        {step === 4 && selectedWarehouse && cartHasItems && (
           <Step4Payment
             warehouse={selectedWarehouse}
-            box={selectedBox}
+            boxes={boxes}
+            cart={cart}
             renter={form}
             checkoutAttemptId={checkoutAttemptId}
             onPrev={() => setStep(3)}

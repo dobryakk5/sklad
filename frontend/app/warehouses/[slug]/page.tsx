@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { getBoxes, getSeoMeta, getWarehouse } from '@/lib/api'
 import { formatNumberRu } from '@/lib/format'
 import { BITRIX_BASE } from '@/lib/constants'
-import { getRentalCatalogPath, getRentalModeConfig, normalizeRentalMode } from '@/lib/rentalModes'
+import { getCatalogModeCopy, getRentalCatalogPath, normalizeRentalMode } from '@/lib/rentalModes'
 import { BoxGrid } from '@/components/catalog/BoxGrid'
 import type { Metadata } from 'next'
 import type { SeoOverride } from '@/types/admin'
@@ -14,6 +14,10 @@ import type { Warehouse } from '@/types/warehouse'
 interface Props {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ mode?: string }>
+}
+
+function resolveWarehouseMode(rawMode: string | undefined): RentalMode | null {
+  return rawMode ? normalizeRentalMode(rawMode) : null
 }
 
 function applySeoMetadata(base: Metadata, seo: SeoOverride | null): Metadata {
@@ -40,8 +44,8 @@ function applySeoMetadata(base: Metadata, seo: SeoOverride | null): Metadata {
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params
   const { mode: rawMode } = await searchParams
-  const mode = normalizeRentalMode(rawMode)
-  const config = getRentalModeConfig(mode)
+  const mode = resolveWarehouseMode(rawMode)
+  const modeCopy = getCatalogModeCopy(mode ?? undefined)
   try {
     const [warehouse, seo] = await Promise.all([
       getWarehouse(slug),
@@ -49,10 +53,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     ])
     const pricePerSqm = formatNumberRu(warehouse.price_per_sqm)
     const base: Metadata = {
-      title: `${config.pluralLabel} на складе ${warehouse.name}`,
+      title: `${modeCopy.pluralLabel} на складе ${warehouse.name}`,
       description: pricePerSqm
-        ? `${config.label} от ${pricePerSqm} ₽/м² на складе ${warehouse.name}. ${warehouse.address}. Доступ 24/7.`
-        : `${config.label} на складе ${warehouse.name}. ${warehouse.address}. Доступ 24/7.`,
+        ? `${modeCopy.itemLabel} от ${pricePerSqm} ₽/м² на складе ${warehouse.name}. ${warehouse.address}. Доступ 24/7.`
+        : `${modeCopy.pluralLabel} на складе ${warehouse.name}. ${warehouse.address}. Доступ 24/7.`,
     }
 
     return applySeoMetadata(base, seo)
@@ -71,18 +75,26 @@ function GridSkeleton() {
   )
 }
 
-async function CatalogContent({ warehouse, mode }: { warehouse: Warehouse; mode: RentalMode }) {
-  const { data: boxes } = await getBoxes({ stock_id: warehouse.id, rental_mode: mode })
-  return <BoxGrid boxes={boxes} warehouse={warehouse} mode={mode} />
+async function CatalogContent({ warehouse, mode }: { warehouse: Warehouse; mode: RentalMode | null }) {
+  const { data: boxes } = await getBoxes(
+    mode
+      ? { stock_id: warehouse.id, rental_mode: mode }
+      : { stock_id: warehouse.id },
+  )
+
+  return <BoxGrid boxes={boxes} warehouse={warehouse} mode={mode ?? undefined} />
 }
 
 export default async function WarehouseCatalogPage({ params, searchParams }: Props) {
   const { slug } = await params
   const { mode: rawMode } = await searchParams
-  const mode = normalizeRentalMode(rawMode)
-  const modeConfig = getRentalModeConfig(mode)
+  const mode = resolveWarehouseMode(rawMode)
+  const modeCopy = getCatalogModeCopy(mode ?? undefined)
   const warehouse = await getWarehouse(slug)
   const heroPhoto = warehouse.photo_url ?? warehouse.photos[0] ?? null
+  const catalogHref = mode ? getRentalCatalogPath(mode) : modeCopy.path
+  const catalogLabel = mode ? modeCopy.label : 'Склады'
+  const backButtonLabel = mode ? 'Выбрать другой склад' : 'Все склады'
 
   return (
     <main className="catalog-main">
@@ -91,18 +103,18 @@ export default async function WarehouseCatalogPage({ params, searchParams }: Pro
         <nav className="breadcrumbs" aria-label="Навигация">
           <Link href="/" className="bc-link">Главная</Link>
           <span className="bc-sep">›</span>
-          <Link href={getRentalCatalogPath(mode)} className="bc-link">{modeConfig.label}</Link>
+          <Link href={catalogHref} className="bc-link">{catalogLabel}</Link>
           <span className="bc-sep">›</span>
           <span className="bc-current">{warehouse.name}</span>
         </nav>
 
         <div className="catalog-header">
           <div>
-            <h1 className="catalog-title">{modeConfig.pluralLabel} на складе {warehouse.name}</h1>
+            <h1 className="catalog-title">{modeCopy.pluralLabel} на складе {warehouse.name}</h1>
             <p className="catalog-subtitle">{warehouse.address}</p>
           </div>
-          <Link href={getRentalCatalogPath(mode)} className="btn-primary">
-            Выбрать другой склад
+          <Link href={catalogHref} className="btn-primary">
+            {backButtonLabel}
           </Link>
         </div>
 

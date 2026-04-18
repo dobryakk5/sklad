@@ -442,6 +442,7 @@
 }
 
 .online-steps-icon-wrap {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -453,13 +454,97 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.online-steps-done-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  line-height: 0;
+}
+
+.online-selected-warehouse {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 22px;
+  border: 1px solid #ebebeb;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.04);
+}
+
+.online-selected-warehouse__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.online-selected-warehouse__label {
+  color: #999;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.online-selected-warehouse__name {
+  color: #333;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.online-selected-warehouse__reset {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1px solid #e0e0e0;
+  border-radius: 999px;
+  background: #fff;
+  color: #777;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.online-selected-warehouse__reset:hover {
+  border-color: #ef5a54;
+  color: #ef5a54;
+}
+
+.online-selected-warehouse__reset::before {
+  content: '×';
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 400;
+}
+
 .online-steps-button.is-current .online-steps-icon-wrap {
   border-color: #ef5a54;
   box-shadow: 0 0 0 4px rgba(239, 90, 84, 0.12);
 }
 
 .online-steps-button.is-complete .online-steps-icon-wrap {
-  border-color: rgba(239, 90, 84, 0.4);
+  border-color: #e0e0e0;
+  background: #f7f7f7;
+}
+
+.online-steps-button.is-complete .online-steps-icon {
+  filter: grayscale(1) opacity(0.45);
+}
+
+.online-steps-button.is-complete .online-steps-text {
+  color: #bbb;
+}
+
+.online-steps-button.is-complete .online-steps-text strong,
+.online-steps-button.is-complete .online-steps-text span {
+  color: #bbb;
 }
 
 .online-steps-icon {
@@ -755,6 +840,17 @@
 
   .online-steps-text {
     font-size: 14px;
+  }
+
+  .online-selected-warehouse {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .online-selected-warehouse__reset {
+    width: 100%;
+    justify-content: center;
   }
 
   .online-footer__grid {

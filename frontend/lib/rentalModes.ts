@@ -13,6 +13,15 @@ type RentalModeConfig = {
   heroDescription: string
 }
 
+type GenericCatalogModeCopy = {
+  label: string
+  itemLabel: string
+  pluralLabel: string
+  listingLabel: string
+  countLabel: string
+  path: string
+}
+
 const MODE_CONFIG: Record<RentalMode, RentalModeConfig> = {
   box: {
     mode: 'box',
@@ -79,6 +88,15 @@ const SLUG_TO_MODE: Record<string, RentalMode> = {
   'arenda_pomeshcheniya': 'room',
 }
 
+const DEFAULT_CATALOG_MODE_COPY: GenericCatalogModeCopy = {
+  label: 'Склады',
+  itemLabel: 'Помещение',
+  pluralLabel: 'Помещения',
+  listingLabel: 'помещений',
+  countLabel: 'свободных помещений',
+  path: '/',
+}
+
 export function isRentalMode(value: string | null | undefined): value is RentalMode {
   return value === 'box'
     || value === 'container'
@@ -98,6 +116,10 @@ export function rentalModeFromCatalogSlug(slug?: string[]): RentalMode | null {
 
 export function getRentalModeConfig(mode: RentalMode): RentalModeConfig {
   return MODE_CONFIG[mode]
+}
+
+export function getCatalogModeCopy(mode?: RentalMode): GenericCatalogModeCopy {
+  return mode ? MODE_CONFIG[mode] : DEFAULT_CATALOG_MODE_COPY
 }
 
 export function getRentalCatalogPath(mode: RentalMode): string {

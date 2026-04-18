@@ -121,8 +121,8 @@ interface Props {
   boxes: Box[]
   loading: boolean
   error: string | null
-  selectedBoxId: number | null
-  onSelect: (id: number) => void
+  cart: Record<number, number>
+  onCartChange: (id: number, qty: number) => void
   onNext: () => void
   onPrev: () => void
 }
@@ -131,8 +131,8 @@ export default function Step2Room({
   boxes,
   loading,
   error,
-  selectedBoxId,
-  onSelect,
+  cart,
+  onCartChange,
   onNext,
   onPrev,
 }: Props) {
@@ -166,6 +166,7 @@ export default function Step2Room({
   })
 
   const displayed = showAll ? filtered : filtered.slice(0, 6)
+  const cartHasItems = Object.values(cart).some(qty => qty > 0)
 
   const filterChip = (active: boolean, wide = false) => ({
     padding: wide ? '10px 14px' : '8px 16px',
@@ -326,7 +327,8 @@ export default function Step2Room({
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }} className="cards-grid">
               {displayed.map(box => {
-                const isSelected = selectedBoxId === box.id
+                const qty = cart[box.id] ?? 0
+                const isInCart = qty > 0
                 const { levelImg, planImg } = getPlanImage(box)
                 const { title, subtitle } = getCardCopy(box)
                 const price = box.price ?? (
@@ -338,14 +340,12 @@ export default function Step2Room({
                 return (
                   <div
                     key={box.id}
-                    onClick={() => onSelect(box.id)}
                     style={{
-                      border: `1px solid ${isSelected ? '#e8000d' : '#e0e0e0'}`,
+                      border: `1px solid ${isInCart ? '#e8000d' : '#e0e0e0'}`,
                       borderRadius: 8,
                       background: '#fff',
                       overflow: 'hidden',
-                      cursor: 'pointer',
-                      boxShadow: isSelected ? '0 0 0 2px rgba(232,0,13,0.15)' : 'none',
+                      boxShadow: isInCart ? '0 0 0 2px rgba(232,0,13,0.15)' : 'none',
                       transition: 'all 0.2s',
                       display: 'flex',
                       flexDirection: 'column',
@@ -397,21 +397,85 @@ export default function Step2Room({
                     </div>
 
                     <div style={{ padding: '12px 16px' }}>
-                      <button style={{
-                        width: '100%',
-                        padding: '10px',
-                        borderRadius: 6,
-                        border: '1px solid #e8000d',
-                        background: isSelected ? '#e8000d' : 'transparent',
-                        color: isSelected ? '#fff' : '#e8000d',
-                        fontSize: 14,
-                        fontWeight: 600,
-                        fontFamily: 'inherit',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                      }}>
-                        {isSelected ? '✓ Выбрано' : 'Выбрать'}
-                      </button>
+                      {isInCart ? (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          border: '1px solid #e8000d',
+                          borderRadius: 6,
+                          overflow: 'hidden',
+                        }}>
+                          <button
+                            type="button"
+                            onClick={() => onCartChange(box.id, qty - 1)}
+                            style={{
+                              width: 38,
+                              height: 38,
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#e8000d',
+                              fontSize: 22,
+                              lineHeight: 1,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            −
+                          </button>
+                          <span style={{
+                            flex: 1,
+                            textAlign: 'center',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: '#222',
+                          }}>
+                            {qty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onCartChange(box.id, qty + 1)}
+                            style={{
+                              width: 38,
+                              height: 38,
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#e8000d',
+                              fontSize: 22,
+                              lineHeight: 1,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onCartChange(box.id, 1)}
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            borderRadius: 6,
+                            border: '1px solid #e8000d',
+                            background: 'transparent',
+                            color: '#e8000d',
+                            fontSize: 14,
+                            fontWeight: 600,
+                            fontFamily: 'inherit',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          Выбрать
+                        </button>
+                      )}
                     </div>
                   </div>
                 )
@@ -486,7 +550,7 @@ export default function Step2Room({
 
         <button
           onClick={onNext}
-          disabled={!selectedBoxId}
+          disabled={!cartHasItems}
           style={{
             padding: '10px 28px',
             borderRadius: 6,
@@ -494,9 +558,9 @@ export default function Step2Room({
             fontSize: 14,
             fontFamily: 'inherit',
             fontWeight: 600,
-            background: selectedBoxId ? '#e8000d' : '#ccc',
+            background: cartHasItems ? '#e8000d' : '#ccc',
             color: '#fff',
-            cursor: selectedBoxId ? 'pointer' : 'not-allowed',
+            cursor: cartHasItems ? 'pointer' : 'not-allowed',
           }}
         >
           Ввести данные →

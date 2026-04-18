@@ -80,6 +80,20 @@ export default function StepIndicator({ currentStep, onStepClick }: StepIndicato
               >
                 <span className="online-steps-icon-wrap">
                   <img className="online-steps-icon" src={step.icon} alt="" />
+                  {isComplete && (
+                    <span className="online-steps-done-badge" aria-hidden="true">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="8" fill="#ef5a54" />
+                        <path
+                          d="M4.5 8.2l2.2 2.2 4.3-4.3"
+                          stroke="#fff"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  )}
                 </span>
                 <span className="online-steps-text">
                   <strong>{step.num}.</strong>
