@@ -16,10 +16,8 @@ const AREA_RANGES = [
 const ROOM_TYPES = ['Бокс', 'Ячейка', 'Контейнер'] as const
 
 const CELL_POSITION_OPTIONS = [
-  { id: 'level-1-left', label: '1 ярус', level: 1 as const },
-  { id: 'level-1-right', label: '1 ярус', level: 1 as const },
-  { id: 'level-2-left', label: '2 ярус', level: 2 as const },
-  { id: 'level-2-right', label: '2 ярус', level: 2 as const },
+  { id: 'level-1', label: '1 ярус', level: 1 as const },
+  { id: 'level-2', label: '2 ярус', level: 2 as const },
 ]
 
 function getDisplayType(box: Box): string {
@@ -255,20 +253,6 @@ export default function Step2Room({
             </div>
 
             <div>
-              {sectionTitle('Расположение', 'ячейки')}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {CELL_POSITION_OPTIONS.map(option => (
-                  <button key={option.id} type="button" disabled style={disabledCellFilterChip}>
-                    <CellPositionIcon level={option.level} />
-                    <span style={{ fontSize: 12, color: '#666', fontFamily: 'inherit' }}>
-                      {option.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
               {sectionTitle('Площадь', 'помещения')}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 {AREA_RANGES.map(area => {
@@ -313,6 +297,20 @@ export default function Step2Room({
                     }}
                   >
                     {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              {sectionTitle('Расположение', 'ячейки')}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {CELL_POSITION_OPTIONS.map(option => (
+                  <button key={option.id} type="button" disabled style={disabledCellFilterChip}>
+                    <CellPositionIcon level={option.level} />
+                    <span style={{ fontSize: 12, color: '#666', fontFamily: 'inherit' }}>
+                      {option.label}
+                    </span>
                   </button>
                 ))}
               </div>
