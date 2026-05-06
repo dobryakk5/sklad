@@ -14,4 +14,30 @@ return [
         'abandoned'  => 343,
         'deleted'    => 401,
     ],
+
+    'iblock' => [
+        'contracts' => 52,
+        'invoices' => 53,
+        'payment_methods' => 69,
+    ],
+
+    'contract_status_active_id' => (int) env('BITRIX_CONTRACT_STATUS_ACTIVE_ID', 352),
+
+    'invoice_status_map' => [
+        354 => 'not_paid',
+        355 => 'paid',
+        356 => 'partial',
+        400 => 'not_paid',
+        421 => 'processing',
+    ],
+
+    'invoice_payable_status_ids' => [
+        354,
+        421,
+        356,
+    ],
+
+    'service_base_url' => env('BITRIX_CABINET_BASE_URL', env('BITRIX_API_BASE_URL')),
+    'service_secret' => env('BITRIX_API_SECRET', env('CABINET_SERVICE_SECRET')),
+    'service_timeout' => (int) env('BITRIX_SERVICE_TIMEOUT', 10),
 ];

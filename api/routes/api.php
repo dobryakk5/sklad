@@ -5,10 +5,14 @@ use App\Http\Controllers\Admin\OperatorController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SeoMetaController as AdminSeoMetaController;
 use App\Http\Controllers\Api\BoxController;
+use App\Http\Controllers\Api\CabinetController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SeoMetaController;
 use App\Http\Controllers\Api\WarehouseController;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -77,4 +81,31 @@ Route::prefix('admin')->middleware(['api', 'admin.auth', 'admin.role'])->group(f
     Route::post('/users', [OperatorController::class, 'store']);
     Route::put('/users/{id}', [OperatorController::class, 'update']);
     Route::delete('/users/{id}', [OperatorController::class, 'destroy']);
+});
+
+Route::prefix('cabinet')->middleware([
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+])->group(function () {
+    Route::post('/auth/login', [CabinetController::class, 'login']);
+    Route::post('/auth/logout', [CabinetController::class, 'logout'])
+        ->middleware('cabinet.auth');
+
+    Route::middleware('cabinet.auth')->group(function () {
+        Route::get('/me', [CabinetController::class, 'me']);
+        Route::get('/contracts', [CabinetController::class, 'contracts']);
+        Route::get('/invoices', [CabinetController::class, 'invoices']);
+        Route::get('/balance', [CabinetController::class, 'balance']);
+        Route::get('/payment-method', [CabinetController::class, 'paymentMethod']);
+
+        Route::get('/invoices/{id}', [CabinetController::class, 'invoice'])
+            ->where('id', '[0-9]+');
+        Route::post('/invoices/{id}/pay', [CabinetController::class, 'notImplemented'])
+            ->where('id', '[0-9]+');
+        Route::post('/balance/top-up', [CabinetController::class, 'notImplemented']);
+        Route::post('/autopay/enable', [CabinetController::class, 'notImplemented']);
+        Route::post('/autopay/disable', [CabinetController::class, 'notImplemented']);
+        Route::post('/payment-method/unlink', [CabinetController::class, 'notImplemented']);
+    });
 });

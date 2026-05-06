@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'bitrix_cabinet' => [
+        'base_url' => env('BITRIX_CABINET_BASE_URL'),
+        'secret' => env('BITRIX_API_SECRET', env('CABINET_SERVICE_SECRET')),
+    ],
+
 ];
