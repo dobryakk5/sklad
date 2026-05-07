@@ -30,14 +30,37 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - /var/www/sklad/frontend:/app
       - next_node_modules:/app/node_modules
     command: >
-      sh -c "npm install && npm run build && npm run start -- --hostname 0.0.0.0 --port 3000"
+      sh -c "npm install &&
+             npm --workspace @alfasklad/site run build &&
+             npm --workspace @alfasklad/site run start -- --hostname 0.0.0.0 --port 3000"
+
+  sklad-cabinet:
+    image: node:20
+    restart: unless-stopped
+    working_dir: /app
+    environment:
+      API_BASE_URL: ${API_BASE_URL:-http://host.docker.internal:8000/api}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+      NODE_ENV: production
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - /var/www/sklad/frontend:/app
+      - cabinet_node_modules:/app/node_modules
+    command: >
+      sh -c "npm install --include=dev &&
+             npm --workspace @alfasklad/cabinet run build &&
+             npm --workspace @alfasklad/cabinet run start -- --hostname 0.0.0.0"
 
 volumes:
   redis_data:
   postgres_data:
   next_node_modules:
+  cabinet_node_modules:
