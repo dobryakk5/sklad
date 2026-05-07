@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { CABINET_URL } from '@/lib/constants'
 
 const footerColumns = [
   [
@@ -22,7 +23,7 @@ const footerColumns = [
     { label: 'Онлайн аренда', href: 'https://alfasklad.ru/rental_catalog/' },
     { label: 'Доставка', href: 'https://alfasklad.ru/services/dostavka/' },
     { label: 'Фотогалерея', href: 'https://alfasklad.ru/about/fotogalereya-skladov/' },
-    { label: 'Личный кабинет', href: 'https://alfasklad.ru/cabinet/' },
+    { label: 'Личный кабинет', href: CABINET_URL },
     { label: 'Оплата', href: 'https://alfasklad.ru/pay/' },
     { label: 'Вакансии', href: 'https://alfasklad.ru/vacancies/' },
   ],

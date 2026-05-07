@@ -4,6 +4,7 @@ import { Suspense, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Printer } from 'lucide-react';
 import { login, ApiError } from '@alfasklad/api-client';
+import { SITE_URL } from '@/lib/navigation';
 
 const DEFAULT_RETURN_PATH = '/';
 
@@ -59,7 +60,7 @@ function LoginForm() {
   return (
     <main className="login-page">
       <div className="login-shell">
-        <a className="login-logo" href="/" aria-label="АльфаСклад">
+        <a className="login-logo" href={SITE_URL} aria-label="АльфаСклад">
           <img src="/images/logo_site.png" alt="АльфаСклад" />
         </a>
 

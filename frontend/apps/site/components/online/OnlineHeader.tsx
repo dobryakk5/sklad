@@ -1,13 +1,14 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { CABINET_URL, SITE_URL } from '@/lib/constants'
 
 const LOGO = 'https://alfasklad.ru/upload/CPriority/b35/guv308nx3nh9ugbbpt4m6252s40syyit/logo_site.png'
 
 const mainNav = [
   {
     label: 'Главная',
-    href: 'https://alfasklad.ru/',
+    href: SITE_URL,
     children: [],
   },
   {
@@ -102,7 +103,7 @@ export default function OnlineHeader() {
       <div className="online-header__desktop">
         <div className="online-maxwidth">
           <div className="online-header__main-row">
-            <a className="online-header__logo" href="https://alfasklad.ru/" aria-label="АльфаСклад">
+            <a className="online-header__logo" href={SITE_URL} aria-label="АльфаСклад">
               <img src={LOGO} alt="АльфаСклад" />
             </a>
 
@@ -175,7 +176,7 @@ export default function OnlineHeader() {
             </div>
 
             <div className="online-header__actions">
-              <a className="online-header__button online-header__button--accent" href="https://alfasklad.ru/cabinet/">
+              <a className="online-header__button online-header__button--accent" href={CABINET_URL}>
                 Личный кабинет
               </a>
             </div>
@@ -207,7 +208,7 @@ export default function OnlineHeader() {
               {mobileOpen ? '×' : '☰'}
             </button>
 
-            <a className="online-header__logo" href="https://alfasklad.ru/" aria-label="АльфаСклад">
+            <a className="online-header__logo" href={SITE_URL} aria-label="АльфаСклад">
               <img src={LOGO} alt="АльфаСклад" />
             </a>
 
@@ -215,7 +216,7 @@ export default function OnlineHeader() {
               <a className="online-header__mobile-link" href="tel:+74952663974" aria-label="Позвонить">
                 ☎
               </a>
-              <a className="online-header__mobile-link" href="https://alfasklad.ru/cabinet/" aria-label="Личный кабинет">
+              <a className="online-header__mobile-link" href={CABINET_URL} aria-label="Личный кабинет">
                 ⌂
               </a>
             </div>
@@ -261,7 +262,7 @@ export default function OnlineHeader() {
                     <a href="tel:+74951911046">+7 (495) 191–10–46</a>
                     <a href="https://widget.yourgood.app/#telegram">Telegram</a>
                     <a href={currentCity.href}>{currentCity.label}</a>
-                    <a href="https://alfasklad.ru/cabinet/">Личный кабинет</a>
+                    <a href={CABINET_URL}>Личный кабинет</a>
                   </div>
                 </div>
               </div>

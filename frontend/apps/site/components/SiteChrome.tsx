@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { CABINET_URL } from '@/lib/constants'
 import { getRentalCatalogPath, getRentalModeConfig } from '@/lib/rentalModes'
 
 const serviceLinks = [
@@ -104,7 +105,7 @@ function SiteHeader() {
 
         <div className="header-actions">
           <a href="tel:+74952663974" className="header-phone">+7 (495) 266-39-74</a>
-          <Link href="/cabinet" className="btn-outline">Личный кабинет</Link>
+          <a href={CABINET_URL} className="btn-outline">Личный кабинет</a>
         </div>
       </div>
     </header>

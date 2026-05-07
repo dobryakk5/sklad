@@ -4,7 +4,7 @@ import type { RentalMode } from '@/types/rental'
 
 import { formatNumberRu } from '@/lib/format'
 import { getCatalogModeCopy } from '@/lib/rentalModes'
-import { BITRIX_BASE, RENTAL_CATALOG_URL } from '@/lib/constants'
+import { CABINET_URL, RENTAL_CATALOG_URL } from '@/lib/constants'
 
 const STATUS_LABEL: Record<Box['status'], string> = {
   free:        'Свободен',
@@ -162,7 +162,7 @@ export function BoxCard({ box, warehouseSlug, mode, index }: Props) {
 
         {isSoon && (
           <a
-            href={`${BITRIX_BASE}/cabinet/`}
+            href={CABINET_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="box-btn-soon"

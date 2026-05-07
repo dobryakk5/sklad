@@ -1,6 +1,6 @@
 cd /var/www/sklad
 git pull
-docker compose up -d --force-recreate sklad-next
+docker compose up -d --force-recreate sklad-next sklad-cabinet
 systemctl restart sklad-api
 
 

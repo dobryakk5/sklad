@@ -10,8 +10,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { logout } from '@alfasklad/api-client';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alfasklad.ru/';
+import { SITE_URL } from '@/lib/navigation';
 
 // Роуты в корне — нет префикса /cabinet
 const mainItems = [

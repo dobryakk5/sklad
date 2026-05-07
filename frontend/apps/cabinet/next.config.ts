@@ -1,5 +1,7 @@
 import type { NextConfig } from 'next';
 
+const apiBaseUrl = (process.env.API_BASE_URL ?? 'http://localhost:8000/api').replace(/\/+$/, '');
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Нет basePath — cabinet живёт в корне lk.alfasklad.ru
@@ -9,7 +11,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${apiBaseUrl}/:path*`,
       },
     ];
   },

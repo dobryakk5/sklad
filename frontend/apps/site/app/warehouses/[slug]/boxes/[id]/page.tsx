@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getBox, getSeoMeta, getWarehouse } from '@/lib/api'
 import { formatNumberRu } from '@/lib/format'
+import { BITRIX_BASE, CABINET_URL } from '@/lib/constants'
 import {
   getRentalCatalogPath,
   getRentalModeConfig,
@@ -13,8 +14,6 @@ import type { Metadata } from 'next'
 import type { SeoOverride } from '@/types/admin'
 import type { Box } from '@/types/box'
 import type { RentalMode } from '@/types/rental'
-
-const BITRIX_BASE = 'https://alfasklad.ru'
 
 interface Props {
   params: Promise<{ slug: string; id: string }>
@@ -255,7 +254,7 @@ export default async function BoxDetailPage({ params, searchParams }: Props) {
               {isSoon && (
                 <>
                   <a
-                    href={`${BITRIX_BASE}/cabinet/`}
+                    href={CABINET_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bd-btn-rent"
