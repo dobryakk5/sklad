@@ -5,14 +5,19 @@ import {
   CircleHelp,
   ClipboardList,
   ClipboardX,
+  FileText,
   MessageSquareText,
   Package,
   PhoneCall,
   RadioTower,
+  ReceiptText,
   Speech,
+  Truck,
+  UserRoundCheck,
   Wrench,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import type { CabinetRequestType } from '@alfasklad/api-client';
 import { CallbackForm } from './CallbackForm';
 import { GenericRequestForm } from './GenericRequestForm';
 import { QuestionForm } from './QuestionForm';
@@ -23,8 +28,12 @@ import type { RequestContactDefaults } from './types';
 
 export type RequestTypeCode =
   | 'callback'
+  | 'manager_order'
   | 'question'
   | 'review'
+  | 'delivery'
+  | 'request_upd'
+  | 'request_invoice_email'
   | 'video'
   | 'storage'
   | 'repair'
@@ -51,6 +60,30 @@ const requestItems: RequestItem[] = [
     title: 'Задать вопрос',
     modalTitle: 'Задать вопрос',
     icon: CircleHelp,
+  },
+  {
+    code: 'delivery',
+    title: 'Заказать доставку',
+    modalTitle: 'Заказать доставку',
+    icon: Truck,
+  },
+  {
+    code: 'request_upd',
+    title: 'Запросить УПД',
+    modalTitle: 'Запросить УПД',
+    icon: FileText,
+  },
+  {
+    code: 'request_invoice_email',
+    title: 'Запросить счет на E-mail',
+    modalTitle: 'Запросить счет на E-mail',
+    icon: ReceiptText,
+  },
+  {
+    code: 'manager_order',
+    title: 'Заявка через менеджера',
+    modalTitle: 'Заявка через менеджера',
+    icon: UserRoundCheck,
   },
   {
     code: 'review',
@@ -135,7 +168,7 @@ export function RequestGrid({
 
   return (
     <>
-      <section className="grid border-l border-t border-[#eceff3] bg-white sm:grid-cols-2 xl:grid-cols-3">
+      <section className="divide-y divide-[#eceff3] border border-[#eceff3] bg-white">
         {requestItems.map((item) => (
           <RequestCard
             key={item.code}
@@ -160,6 +193,7 @@ export function RequestGrid({
 
           {!['callback', 'question', 'review'].includes(activeItem.code) ? (
             <GenericRequestForm
+              requestType={activeItem.code as CabinetRequestType}
               requestTitle={activeItem.title}
               defaults={contactDefaults}
               onDone={closeModal}

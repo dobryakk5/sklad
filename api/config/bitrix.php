@@ -27,7 +27,7 @@ return [
         354 => 'not_paid',
         355 => 'paid',
         356 => 'partial',
-        400 => 'not_paid',
+        400 => 'cancelled',
         421 => 'processing',
     ],
 

@@ -42,3 +42,31 @@ it('formats valid auth bridge responses', function () {
         'phone' => '+79990000001',
     ]);
 });
+
+it('submits cabinet requests through the signed bridge', function () {
+    Http::fake([
+        'bitrix.example/*' => Http::response([
+            'result_id' => 123,
+            'web_form_id' => 20,
+        ], 201),
+    ]);
+
+    $result = app(BitrixCabinetAuthClient::class)->submitRequest(42, 'question', [
+        'name' => 'Valid User',
+        'message' => 'Need help',
+    ]);
+
+    expect($result)->toBe([
+        'result_id' => 123,
+        'web_form_id' => 20,
+    ]);
+
+    Http::assertSent(function ($request) {
+        return $request->url() === 'https://bitrix.example/local/api/cabinet/requests/create.php'
+            && $request->hasHeader('X-Cabinet-Timestamp')
+            && $request->hasHeader('X-Cabinet-Signature')
+            && $request['user_id'] === 42
+            && $request['type'] === 'question'
+            && $request['fields']['message'] === 'Need help';
+    });
+});

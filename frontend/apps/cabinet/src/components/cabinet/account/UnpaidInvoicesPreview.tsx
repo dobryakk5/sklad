@@ -1,6 +1,6 @@
 'use client';
 
-import type { ApiInvoice } from '@alfasklad/api-client';
+import type { ApiInvoice, InvoiceStatus } from '@alfasklad/api-client';
 
 type UnpaidInvoicesPreviewProps = {
   invoices: ApiInvoice[];
@@ -13,6 +13,14 @@ function formatMoney(amount: number, currency: string) {
     maximumFractionDigits: 2,
   }).format(amount);
 }
+
+const invoiceStatusLabels: Record<InvoiceStatus, string> = {
+  not_paid: 'Не оплачен',
+  processing: 'В обработке',
+  partial: 'Частично оплачен',
+  paid: 'Оплачен',
+  cancelled: 'Отменен',
+};
 
 export function UnpaidInvoicesPreview({
   invoices,
@@ -42,7 +50,7 @@ export function UnpaidInvoicesPreview({
                   Счет {invoice.number}
                 </div>
                 <div className="mt-1 text-[14px] text-[#667085]">
-                  Договор {invoice.contract_number} • {invoice.status}
+                  Договор {invoice.contract_number} • {invoiceStatusLabels[invoice.status]}
                 </div>
               </div>
 

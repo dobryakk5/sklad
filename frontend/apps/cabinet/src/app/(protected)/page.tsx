@@ -10,7 +10,6 @@ import { CabinetBreadcrumbs } from '@/components/cabinet/CabinetBreadcrumbs';
 import { CabinetCard } from '@/components/cabinet/CabinetCard';
 import { CabinetPageTitle } from '@/components/cabinet/CabinetPageTitle';
 import { AccountSummary } from '@/components/cabinet/account/AccountSummary';
-import { PaymentNotice } from '@/components/cabinet/account/PaymentNotice';
 import { TopUpForm } from '@/components/cabinet/account/TopUpForm';
 import { UnpaidInvoicesPreview } from '@/components/cabinet/account/UnpaidInvoicesPreview';
 import { PaymentMethodsPanel } from '@/components/cabinet/payment/PaymentMethodsPanel';
@@ -46,8 +45,6 @@ export default async function DashboardPage() {
             balance={balance.total_balance}
             contracts={contractsRes.data}
           />
-
-          <PaymentNotice />
 
           <TopUpForm contracts={contractsRes.data} />
 

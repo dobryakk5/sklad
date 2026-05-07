@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { ApiContract, ApiInvoice } from '@alfasklad/api-client';
+import type { ApiContract, ApiInvoice, InvoiceStatus } from '@alfasklad/api-client';
 
 type ContractsTabsProps = {
   contracts: ApiContract[];
@@ -17,6 +17,14 @@ function formatMoney(amount: number, currency = 'RUB') {
     maximumFractionDigits: 2,
   }).format(amount);
 }
+
+const invoiceStatusLabels: Record<InvoiceStatus, string> = {
+  not_paid: 'Не оплачен',
+  processing: 'В обработке',
+  partial: 'Частично оплачен',
+  paid: 'Оплачен',
+  cancelled: 'Отменен',
+};
 
 export function ContractsTabs({
   contracts,
@@ -86,7 +94,7 @@ export function ContractsTabs({
                 <tr key={invoice.id} className="border-b border-[#f3f5f8] text-[15px] text-[#273142] last:border-b-0">
                   <td className="px-5 py-4 sm:px-6">{invoice.number}</td>
                   <td className="px-5 py-4 sm:px-6">{invoice.contract_number}</td>
-                  <td className="px-5 py-4 sm:px-6">{invoice.status}</td>
+                  <td className="px-5 py-4 sm:px-6">{invoiceStatusLabels[invoice.status]}</td>
                   <td className="px-5 py-4 sm:px-6">
                     {formatMoney(invoice.amount, invoice.currency)}
                   </td>

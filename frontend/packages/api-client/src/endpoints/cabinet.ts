@@ -7,6 +7,8 @@ import type {
   ApiPaymentMethod,
   ApiPaymentResult,
   ApiAutopayEnableResult,
+  ApiCabinetRequestPayload,
+  ApiCabinetRequestResult,
 } from '../types';
 
 // ------------------------------------------------------------------ //
@@ -90,4 +92,17 @@ export async function disableAutopay(): Promise<void> {
 
 export async function unlinkPaymentMethod(): Promise<void> {
   await apiFetch('/cabinet/payment-method/unlink', { method: 'POST' });
+}
+
+// ------------------------------------------------------------------ //
+//  Обращения                                                           //
+// ------------------------------------------------------------------ //
+
+export async function createCabinetRequest(
+  payload: ApiCabinetRequestPayload,
+): Promise<ApiCabinetRequestResult> {
+  return apiFetch('/cabinet/requests', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }

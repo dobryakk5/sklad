@@ -11,6 +11,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.
 \Bitrix\Main\Loader::includeModule('iblock');
 \Bitrix\Main\Loader::includeModule('sale');
 \Bitrix\Main\Loader::includeModule('catalog');
+\Bitrix\Main\Loader::includeModule('form');
 
 header('Content-Type: application/json; charset=utf-8');
 

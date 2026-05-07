@@ -54,8 +54,8 @@ final class CabinetController extends ApiController
     public function me(Request $request): JsonResponse
     {
         $userId = (int) $request->session()->get('cabinet_user_id');
-        $user = $this->repository->findUserById($userId)
-            ?? $request->session()->get('cabinet_user');
+        $user = $request->session()->get('cabinet_user')
+            ?? $this->repository->findUserById($userId);
 
         if (! is_array($user)) {
             return response()->json([
@@ -122,6 +122,45 @@ final class CabinetController extends ApiController
         return response()->json([
             'data' => $this->repository->getPaymentMethod($userId),
         ]);
+    }
+
+    public function createRequest(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => ['required', 'string', 'max:64'],
+            'fields' => ['required', 'array'],
+            'fields.*' => ['nullable', 'string', 'max:4000'],
+        ]);
+
+        $userId = (int) $request->session()->get('cabinet_user_id');
+        $sessionUser = $request->session()->get('cabinet_user', []);
+        $fields = $validated['fields'];
+
+        if (is_array($sessionUser)) {
+            $defaults = [
+                'name' => (string) ($sessionUser['name'] ?? ''),
+                'email' => (string) ($sessionUser['email'] ?? ''),
+                'phone' => (string) ($sessionUser['phone'] ?? ''),
+            ];
+
+            foreach ($defaults as $key => $value) {
+                if (($fields[$key] ?? '') === '') {
+                    $fields[$key] = $value;
+                }
+            }
+        }
+
+        try {
+            $result = $this->authClient->submitRequest(
+                $userId,
+                $validated['type'],
+                $fields,
+            );
+        } catch (BitrixCabinetException $e) {
+            return $this->errorResponse($e->getErrorCode(), $e->getHttpStatus());
+        }
+
+        return response()->json($result, 201);
     }
 
     public function notImplemented(Request $request): JsonResponse

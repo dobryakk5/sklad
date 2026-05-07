@@ -55,6 +55,7 @@ final class BitrixCabinetRepository
                 'LOGIN',
                 'EMAIL',
                 'NAME',
+                'SECOND_NAME',
                 'LAST_NAME',
                 'PERSONAL_PHONE',
                 'PERSONAL_MOBILE',
@@ -75,7 +76,11 @@ final class BitrixCabinetRepository
     {
         return [
             'id' => (int) $user->ID,
-            'name' => trim(($user->NAME ?? '') . ' ' . ($user->LAST_NAME ?? '')),
+            'name' => trim(implode(' ', array_filter([
+                trim((string) ($user->NAME ?? '')),
+                trim((string) ($user->SECOND_NAME ?? '')),
+                trim((string) ($user->LAST_NAME ?? '')),
+            ]))),
             'email' => (string) ($user->EMAIL ?? ''),
             'phone' => (string) (($user->PERSONAL_PHONE ?: $user->PERSONAL_MOBILE) ?? ''),
         ];
@@ -93,6 +98,7 @@ final class BitrixCabinetRepository
             ->orderByDesc('e.ID')
             ->selectRaw('
                 e.ID as id,
+                e.NAME as element_name,
                 p.PROPERTY_' . self::CONTRACT_PROP_NUMBER . ' as contract_number,
                 p.PROPERTY_' . self::CONTRACT_PROP_STATUS . ' as status_id,
                 p.PROPERTY_' . self::CONTRACT_PROP_BALANCE . ' as raw_balance,
@@ -105,7 +111,7 @@ final class BitrixCabinetRepository
         return $rows
             ->map(fn (object $row) => [
                 'id' => (int) $row->id,
-                'number' => (string) ($row->contract_number ?? ''),
+                'number' => (string) ($row->contract_number ?: $row->element_name ?: ''),
                 'status' => $this->mapContractStatus((int) $row->status_id),
                 'balance' => $this->normalizeContractBalance($row->raw_balance),
                 'box_id' => $row->box_id !== null ? (int) $row->box_id : null,
@@ -296,7 +302,7 @@ final class BitrixCabinetRepository
                 self::INVOICE_STATUS_PARTIAL => 'partial',
                 self::INVOICE_STATUS_PAID => 'paid',
                 self::INVOICE_STATUS_PROCESSING => 'processing',
-                self::INVOICE_STATUS_CANCELLED => 'not_paid',
+                self::INVOICE_STATUS_CANCELLED => 'cancelled',
                 default => 'not_paid',
             }
         );

@@ -3,6 +3,9 @@ git pull
 docker compose up -d --force-recreate sklad-next
 systemctl restart sklad-api
 
+
+kill -9 $(lsof -tiTCP:3001 -sTCP:LISTEN)
+
 -----------
 Как поднять API:
 

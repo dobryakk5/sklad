@@ -1,4 +1,5 @@
 import type {
+  ButtonHTMLAttributes,
   InputHTMLAttributes,
   ReactNode,
   TextareaHTMLAttributes,
@@ -53,11 +54,21 @@ export function TextareaField({
   );
 }
 
-export function SubmitButton({ children }: { children: ReactNode }) {
+type SubmitButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: ReactNode;
+};
+
+export function SubmitButton({
+  children,
+  disabled,
+  ...props
+}: SubmitButtonProps) {
   return (
     <button
+      {...props}
       type="submit"
-      className="mt-8 h-[48px] bg-[#f45454] px-8 text-[13px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#e84545]"
+      disabled={disabled}
+      className="mt-8 h-[48px] bg-[#f45454] px-8 text-[13px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#e84545] disabled:cursor-not-allowed disabled:bg-[#d8dce2]"
     >
       {children}
     </button>

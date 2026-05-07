@@ -19,7 +19,7 @@ export type ApiContract = {
   contract_guid: string;
 };
 
-export type InvoiceStatus = 'not_paid' | 'processing' | 'partial' | 'paid';
+export type InvoiceStatus = 'not_paid' | 'processing' | 'partial' | 'paid' | 'cancelled';
 
 export type ApiInvoice = {
   id: number;
@@ -72,6 +72,36 @@ export type ApiAutopayEnableResult = {
   confirmation_url: string;
 };
 
+export type CabinetRequestType =
+  | 'callback'
+  | 'manager_order'
+  | 'question'
+  | 'profile_edit'
+  | 'video'
+  | 'storage'
+  | 'repair'
+  | 'cancel-contract'
+  | 'board'
+  | 'review'
+  | 'waiting-list'
+  | 'waiting_list'
+  | 'request_upd'
+  | 'request_invoice_email'
+  | 'delivery'
+  | 'rent_calc'
+  | 'rent_request'
+  | 'mobile_feedback';
+
+export type ApiCabinetRequestPayload = {
+  type: CabinetRequestType;
+  fields: Record<string, string>;
+};
+
+export type ApiCabinetRequestResult = {
+  result_id: number;
+  web_form_id: number;
+};
+
 // Ошибки
 
 export type ApiErrorCode =
@@ -85,6 +115,7 @@ export type ApiErrorCode =
   | 'INVOICE_NOT_PAYABLE'
   | 'INVALID_AMOUNT'
   | 'BITRIX_ERROR'
+  | 'UNKNOWN_REQUEST_TYPE'
   | 'UNKNOWN';
 
 export class ApiError extends Error {

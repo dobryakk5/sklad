@@ -98,6 +98,7 @@ Route::prefix('cabinet')->middleware([
         Route::get('/invoices', [CabinetController::class, 'invoices']);
         Route::get('/balance', [CabinetController::class, 'balance']);
         Route::get('/payment-method', [CabinetController::class, 'paymentMethod']);
+        Route::post('/requests', [CabinetController::class, 'createRequest']);
 
         Route::get('/invoices/{id}', [CabinetController::class, 'invoice'])
             ->where('id', '[0-9]+');
