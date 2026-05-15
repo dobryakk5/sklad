@@ -1,0 +1,21 @@
+<?php
+
+define('CABINET_SERVICE_SECRET', getenv('CABINET_SERVICE_SECRET') ?: 'SET_THE_SAME_SECRET_AS_BITRIX_API_SECRET_IN_LARAVEL_ENV');
+define('CABINET_ALLOWED_IPS', [
+    'SET_LARAVEL_SERVER_IP',
+]);
+define('CONTRACTS_IBLOCK_ID', 52);
+define('INVOICES_IBLOCK_ID', 53);
+define('PAYMENT_METHODS_IBLOCK_ID', 69);
+define('BALANCE_PRODUCT_ID', 9819);
+define('PAY_SYSTEM_ID', 7);
+define('CONTRACT_STATUS_ACTIVE_ID', 352);
+define('INVOICE_PAYABLE_STATUSES', [
+    354,
+    421,
+    356,
+]);
+define('ORDER_DEAL_CATEGORY_ID', 3);
+define('PAYMENT_URL_BASE', 'https://alfasklad.ru/order/?ORDER_ID=');
+define('LARAVEL_INTERNAL_BASE_URL', getenv('LARAVEL_INTERNAL_BASE_URL') ?: 'https://lk.alfasklad.ru');
+define('BITRIX_INTERNAL_SECRET', getenv('BITRIX_INTERNAL_SECRET') ?: '');

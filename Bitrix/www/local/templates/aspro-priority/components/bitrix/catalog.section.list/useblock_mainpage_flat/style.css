@@ -1,0 +1,63 @@
+.useblock_mainpage .main_section .main_section_list .item {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+	cursor: pointer;
+}
+.useblock_mainpage .main_section .main_section_list .item.active::before {
+	content: "";
+	position: absolute;
+	width: 2px;
+	height: 60px;
+    border-left: 2px solid #ef5a54;
+}
+.useblock_mainpage .main_section .main_section_list .item .icon {
+    padding-left: 20px;
+}
+.useblock_mainpage .main_section .main_section_list .item .name {
+    padding-left: 25px;
+}
+
+.useblock_mainpage .main_section .main_section_picture img {
+	width: 100%;
+}
+@media(max-width: 991px) {
+	.useblock_mainpage .main_section .main_section_picture {
+		margin-top: 30px;
+	}
+}
+.useblock_mainpage .main_section .text {
+	padding: 20px 30px 0 0;
+}
+
+.useblock_mainpage .child_sections {
+	margin-top: 30px;
+}
+.useblock_mainpage .child_sections .item {
+	white-space: nowrap;
+	overflow: hidden;
+}
+.useblock_mainpage .child_sections .item::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    margin-top: -10px;
+    right: 0;
+    margin-right: 16px;
+    width: 30px;
+    height: 25px;
+    background-image: linear-gradient(to left, rgb(255,255,255), rgba(255,255,255,0));
+}
+.useblock_mainpage .child_sections .item::before {
+    content: "\2014";
+	margin-right: 4px;
+}
+@media(max-width: 991px) {
+	.useblock_mainpage .child_sections .item {
+		white-space: normal;
+		overflow: visisble;
+	}
+	.useblock_mainpage .child_sections .item::after {
+		content: none;
+	}
+}

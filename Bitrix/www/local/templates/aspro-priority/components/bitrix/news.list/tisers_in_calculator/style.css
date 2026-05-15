@@ -1,0 +1,25 @@
+.tisers-list {
+    margin-top: 60px;
+}
+.tisers-list .item {
+    display: flex;
+    align-items: center;
+    min-height: 90px;
+}
+.tisers-list .item .image {
+    width: 50px;
+}
+.tisers-list .item .image img {
+    width: 50px;
+}
+.tisers-list .item .title {
+    padding-left: 20px;
+}
+.tisers-list .item .title .name {
+    color: #333;
+}
+.tisers-list .item .title .link {
+    display: block;
+    line-height: 1.2em;
+    margin-top: 5px;
+}

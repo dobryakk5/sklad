@@ -1,0 +1,76 @@
+.storage_select_withmap .sklad_list {
+    height: 300px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    background-color: #ffffff;
+}
+.storage_select_withmap .sklad_list .sklad {
+    display: flex;
+    padding: 4px 0;
+    border-top: 1px solid #e4e4e4;
+}
+.storage_select_withmap .sklad_list .sklad:first-child {
+    border-top: none;
+}
+.storage_select_withmap .sklad_list .sklad .info {
+    flex-basis: 90%;
+	cursor: pointer;
+}
+.storage_select_withmap .sklad_list .sklad .info .address {
+    font-size: 0.9em;
+}
+.storage_select_withmap .sklad_list .sklad .checkbox_container {
+    flex-basis: 40px;
+    text-align: right;
+}
+@media(max-width: 991px) {
+    .storage_select_withmap .sklad_list .sklad .info {
+        flex-basis: 80%;
+    }
+}
+
+.storage_select_withmap .sklad_list .sklad .value {
+    position: absolute;
+    right: 0;
+    margin-right: 20px;
+    margin-top: 4px;
+}
+.storage_select_withmap .sklad_list .sklad .value input[type=checkbox] {
+    display: none;
+}
+.storage_select_withmap .sklad_list .sklad .value input[type=checkbox] + label {
+    z-index: 1;
+    cursor: pointer;
+}
+.storage_select_withmap .sklad_list .sklad .value input[type=checkbox] + label:before {
+    content: " ";
+    color: #000;
+    display: inline-block;
+    font: 15px/20px Arial;
+    position: relative;
+    text-align: center;
+    text-indent: 0px;
+    width: 30px;
+    height: 30px;
+    background: #ffffff;
+    border: 1px solid #eff1f5;
+    border-image: initial;
+    vertical-align: middle;
+    cursor: pointer;
+    z-index: 1;
+    margin-top: 5px;
+}
+.storage_select_withmap .sklad_list .sklad .value input[type=checkbox]:checked + label:before {
+    content: "\2713";
+    font-size: 20px;
+    color: #ef5a54;
+    line-height: 30px;
+}
+@media(max-width: 991px) {
+    .storage_select_withmap .sklad_list_container {
+        margin-bottom: 30px;
+    }
+}
+.storage_select_withmap .ss-scroll {
+    width: 3px;
+}

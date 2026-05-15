@@ -1,0 +1,266 @@
+Options -Indexes
+ErrorDocument 404 /404.php
+
+<IfModule mod_php5.c>
+  php_flag session.use_trans_sid off
+  #php_flag default_charset UTF-8
+  #php_value display_errors 1
+</IfModule>
+
+<IfModule mod_php7.c>
+  php_flag session.use_trans_sid off
+  #php_flag default_charset UTF-8
+  #php_value display_errors 1
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  Options +FollowSymLinks
+  RewriteEngine On
+  
+Redirect 301 /for_business/arenda-teplogo-sklada/ /storage/arenda-teplogo-sklada/
+#07.06.2024
+Redirect 301 /landing/ https://alfasklad.ru/
+Redirect 301 /landing/code/ https://alfasklad.ru/
+Redirect 301 /1.php  https://alfasklad.ru/
+Redirect 301 /2/ https://alfasklad.ru/
+Redirect 301 /2.php https://alfasklad.ru/
+Redirect 301 /s/storage/ https://alfasklad.ru/storage/
+Redirect 301 /s/ https://alfasklad.ru/storage/
+Redirect 301 /rental_catalog/sklad-na-shosse-entuziastov-mkad/f7a3c3b02bb2dba250a075d983ce38e2/ https://alfasklad.ru/rental_catalog/sklad-na-shosse-entuziastov-mkad/
+Redirect 301 /rental_catalog/sklad-na-shosse-entuziastov-mkad/0d411336a8f79cac79bf7a21c12907e3/ https://alfasklad.ru/rental_catalog/sklad-na-shosse-entuziastov-mkad/
+Redirect 301 /storage/khranenie-VELOSIPEDOV/ https://alfasklad.ru/storage/khranenie-velosipedov/
+ 
+
+  RewriteCond %{REQUEST_URI} ^(.*/[^/\.]+)$
+  RewriteCond %{THE_REQUEST} !api/*
+  RewriteCond %{THE_REQUEST} !urest/*
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1/ [R=301,L]
+
+#  RewriteCond %{REQUEST_FILENAME} !-f
+#  RewriteCond %{REQUEST_FILENAME} !-l
+#  RewriteCond %{REQUEST_FILENAME} !-d
+ # RewriteCond %{REQUEST_URI} ^(.*/[^/\.]+)$
+  #RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1/ [R=301,L]
+##################################################################
+	RewriteCond %{HTTP_HOST} ^www\.alfasklad\.ru:443$ [NC]
+	RewriteRule ^(.*)$ https://alfasklad.ru/$1 [R=301,L]
+
+#	RewriteCond %{SERVER_NAME} !^(www\.)?alfasklad\.ru$
+#	RewriteRule ^ - [F]
+##################################################################
+	#редирект с index.php
+  RewriteCond %{REQUEST_URI} ^(.*)index\.php$
+  RewriteCond %{THE_REQUEST} !bitrix/*
+  RewriteRule ^ %1 [R=301,L]
+
+#	RewriteRule ^about/useful_for_rental /blog/$1 [R=301,L]
+
+#редирект с index.php для главной
+#	RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.php\ HTTP/
+#	RewriteRule ^index\.php$ https://alfasklad.ru/ [R=301,L]
+
+	# ASPRO_ROBOTS Serve robots.txt with robots.php only if the latter exists
+	#RewriteCond %{REQUEST_FILENAME} robots.txt
+	#RewriteCond %{DOCUMENT_ROOT}/robots.php -f
+	#RewriteRule ^(.*)$ /robots.php [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !/bitrix/urlrewrite.php$
+  RewriteRule ^(.*)$ /bitrix/urlrewrite.php [L]
+  RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization}]
+</IfModule>
+
+<IfModule mod_dir.c>
+  DirectoryIndex index.php index.html
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive on
+  ExpiresByType image/jpeg "access plus 3 day"
+  ExpiresByType image/gif "access plus 3 day"
+  ExpiresByType image/png "access plus 3 day"
+  ExpiresByType text/css "access plus 3 day"
+  ExpiresByType application/javascript "access plus 3 day"
+</IfModule>
+
+#04.03.2024
+Redirect 301 /for_business/sklad-vremennogo-khraneniya/ /services/vremennoe-khranenie/
+
+# new redirect 18.12.23
+Redirect 301 /services/yacheyka/ /rental_catalog/yacheyka/
+Redirect 301 /services/konteynernoe-khranenie/ /rental_catalog/konteynery/
+Redirect 301 /services/arenda-kladovki-dlya-khraneniya-veshchey/ /rental_catalog/kladovki/
+Redirect 301 /services/arenda-kladovoy-kladovki/ /rental_catalog/kladovki/
+
+# new redirect 11.12.23
+RedirectMatch 301 ^/find_storage/?$ /rental_catalog/
+Redirect 301 /find_storage/sklad-natasha-kovshova/ /rental_catalog/sklad-natasha-kovshova/
+Redirect 301 /find_storage/sklad-na-shosse-entuziastov-mkad/ /rental_catalog/sklad-na-shosse-entuziastov-mkad/
+Redirect 301 /find_storage/sklad-na-zvenigorodskom-shosse/ /rental_catalog/sklad-na-zvenigorodskom-shosse/
+Redirect 301 /find_storage/sklad-na-nagatinskoy/ /rental_catalog/sklad-na-nagatinskoy/
+Redirect 301 /find_storage/sklad-na-molodogvardeyskoy/ /rental_catalog/sklad-na-molodogvardeyskoy/
+Redirect 301 /find_storage/sklad-na-verkhnelikhoborskoy/ /rental_catalog/sklad-na-verkhnelikhoborskoy
+
+# new redirect 24.11.23
+Redirect 301 /about/useful_for_rental/ /blog/
+Redirect 301 /about/useful_for_rental/khranenie-v-prikhozhey/ /blog/khranenie-v-prikhozhey/
+Redirect 301 /about/useful_for_rental/sistemi-khraneniya-v-spalne/ /blog/sistemi-khraneniya-v-spalne/
+Redirect 301 /about/useful_for_rental/khranenie-na-stene/ /blog/khranenie-na-stene/
+Redirect 301 /about/useful_for_rental/kak-organizovat-khranenie-detskikh-igrushek/ /blog/kak-organizovat-khranenie-detskikh-igrushek/
+Redirect 301 /about/useful_for_rental/14-effektivnykh-sistem-khraneniya-dlya-kukhni/ /blog/14-effektivnykh-sistem-khraneniya-dlya-kukhni/
+Redirect 301 /about/useful_for_rental/10-sekretov-khraneniya-v-malenkoy-kvartire/ /blog/10-sekretov-khraneniya-v-malenkoy-kvartire/
+Redirect 301 /about/useful_for_rental/khranenie-na-balkone-i-lodzhii/ /blog/khranenie-na-balkone-i-lodzhii/
+Redirect 301 /about/useful_for_rental/organizaciya-khraneniya-veshchey-v-detskoy/ /blog/organizaciya-khraneniya-veshchey-v-detskoy/
+Redirect 301 /about/useful_for_rental/khranenie-veshchey-v-garazhe/ /blog/khranenie-veshchey-v-garazhe/
+#! new redirect 24.11.23
+
+Redirect 301 /objects/ /find_storage/
+Redirect 301 /item-storage/ /storage/
+Redirect 301 /item-storage/private/ /storage/
+Redirect 301 /item-storage/business/ /for_business/
+Redirect 301 /storage/business/ /for_business/
+Redirect 301 /storage/private/ /storage/
+Redirect 301 /actions/ /promotions/
+Redirect 301 /actions/20sale/ /promotions/skidka-na-pervyy-platezh/
+Redirect 301 /promotions/20sale/ /promotions/skidka-na-pervyy-platezh/
+Redirect 301 /actions/50sale/ /promotions/skidka-na-yacheyki/
+Redirect 301 /promotions/50sale/ /promotions/skidka-na-yacheyki/
+Redirect 301 /actions/month_free/ /promotions/
+Redirect 301 /promotions/month_free/ /promotions/
+Redirect 301 /about/privacy-policy/ /include/licenses_detail.php
+Redirect 301 /upload/pdf/Standartnye-usloviya-AlfaSklad.pdf /upload/iblock/22b/22b73ee453d9735e12fabda5644126e3.pdf
+Redirect 301 /upload/pdf/Politika-po-obrabotke-personalnyh-dannyh.pdf /upload/docs/Politika-po-obrabotke-personalnyh-dannyh.pdf
+Redirect 301 /upload/iblock/65e/65e9b6bde91324ec6ee4860845f1afe9.pdf /upload/docs/Politika-po-obrabotke-personalnyh-dannyh.pdf
+Redirect 301 /promotions/skidka-na-pervyy-platezh/ /promotions/
+
+# new redirect 301
+Redirect 301 /about/fotogalereya-skladov/7_sklad_molodogvardeyskaya_ul_d_61_str_3/ https://alfasklad.ru/about/fotogalereya-skladov/sklad-na-molodogvardeyskoy/
+Redirect 301 /about/fotogalereya-skladov/4_sklad_dubrovka/ https://alfasklad.ru/about/fotogalereya-skladov/
+Redirect 301 /find_storage/1_sklad_verkhnelikhoborskaya_d_8a/ https://alfasklad.ru/find_storage/sklad-na-verkhnelikhoborskoy/
+Redirect 301 /find_storage/2_sklad_zvenigorodskoe_sh_d_28_str_16/ https://alfasklad.ru/find_storage/sklad-na-zvenigorodskom-shosse/
+Redirect 301 /about/fotogalereya-skladov/5_sklad_shosse_entuziastov/ https://alfasklad.ru/about/fotogalereya-skladov/sklad-na-shosse-entuziastov-mkad/
+Redirect 301 /find_storage/4_sklad_dubrovka/ https://alfasklad.ru/find_storage/
+Redirect 301 /find_storage/3_sklad_nagatinskaya_ul_d_16/ https://alfasklad.ru/find_storage/sklad-na-nagatinskoy/
+Redirect 301 /find_storage/5_sklad_shosse_entuziastov/ https://alfasklad.ru/find_storage/sklad-na-shosse-entuziastov-mkad/
+Redirect 301 /find_storage/7_sklad_molodogvardeyskaya_ul_d_61_str_3/ https://alfasklad.ru/find_storage/sklad-na-molodogvardeyskoy/
+
+# new redirect 11.06.2020
+Redirect 301 /about/docs /about/documents
+Redirect 301 /storage/khranenie-veshchey-s-kvartiry-kotoruyu-planiruyut-sdat-v-arendu/ /storage/
+Redirect 301 /storage/khranenie-detskikh-veshchey-kolyasok/ /storage/khranenie-detskikh-veshchey/
+
+# new redirect 23.10.2020
+Redirect 301 /storage/vremennoe-khranenie-veschey/ https://alfasklad.ru/storage/khranenie-mebeli/
+Redirect 301 /storage/khranenie-na-vremya-pereezda/ https://alfasklad.ru/storage/khranenie-mebeli/
+# Redirect 301 /about/useful_for_rental/khranenie-mebeli-i-domashnikh-veshchey-na-vremya-remonta-ili-pereezda/ https://alfasklad.ru/storage/khranenie-mebeli/
+Redirect 301 /storage/khranenie-na-vremya-remonta/ https://alfasklad.ru/storage/khranenie-mebeli/
+# Redirect 301 /about/useful_for_rental/otkryvayu-biznes-gde-khranit-tovar/ https://alfasklad.ru/for_business/arenda-ofisa-i-sklada-v-odnom-meste/
+# Redirect 301 /storage/khranenie-velosipedov/ https://alfasklad.ru/services/sezonnoe-khranenie-velosipedov/
+#Redirect 301 /for_business/khranenie-arkhivov-dokumentov/ https://alfasklad.ru/services/khranenie-arkhiva-kompanii/
+#Redirect 301 /for_business/khranenie-arkhivov-dokumentov/ /for_business/
+
+#new redirect 21.10.2021
+Redirect 301 /about/fotogalereya-skladov/sklad-na-molodogvardeyskoy/ /find_storage/sklad-na-molodogvardeyskoy/
+Redirect 301 /about/fotogalereya-skladov/sklad-na-nagatinskoy/ https://alfasklad.ru/find_storage/sklad-na-nagatinskoy/
+Redirect 301 /about/fotogalereya-skladov/sklad-na-shosse-entuziastov-mkad/ https://alfasklad.ru/find_storage/sklad-na-shosse-entuziastov-mkad/
+Redirect 301 /about/fotogalereya-skladov/sklad-natasha-kovshova/ https://alfasklad.ru/find_storage/sklad-natasha-kovshova/
+Redirect 301 /about/fotogalereya-skladov/sklad-na-verkhnelikhoborskoy/ https://alfasklad.ru/find_storage/sklad-na-verkhnelikhoborskoy/
+Redirect 301 /about/fotogalereya-skladov/sklad-na-zvenigorodskom-shosse/ https://alfasklad.ru/find_storage/sklad-na-zvenigorodskom-shosse/
+
+Redirect 301 /about/reviews/sklad-na-molodogvardeyskoy/ /find_storage/sklad-na-molodogvardeyskoy/
+Redirect 301 /about/reviews/sklad-na-nagatinskoy/ /find_storage/sklad-na-nagatinskoy/
+Redirect 301 /about/reviews/sklad-na-shosse-entuziastov-mkad/ /find_storage/sklad-na-shosse-entuziastov-mkad/
+Redirect 301 /about/reviews/sklad-natasha-kovshova/ /find_storage/sklad-natasha-kovshova/
+Redirect 301 /about/reviews/sklad-na-verkhnelikhoborskoy/ /find_storage/sklad-na-verkhnelikhoborskoy/
+Redirect 301 /about/reviews/sklad-na-zvenigorodskom-shosse/ /find_storage/sklad-na-zvenigorodskom-shosse/
+
+Redirect 301 /about/voprosi_i_otveti/ /
+
+Redirect 301 /delivery/ /services/usluga-dostavka/
+
+Redirect 301 /rental_catalog/calculator/ /price/
+
+Redirect 301 /about/sklad-ot-sobstvennika/ /
+# Redirect 301 /about/useful_for_rental/ispolzovanie-skladov-samoskladov-kak-alternativa-garazhu-ili-zakhlamleniyu-balkona/ /
+# Redirect 301 /about/useful_for_rental/nebolshoy-sklad-dlya-vashego-biznesa-i-khraneniya-lichnykh-veshchey/ /
+# Redirect 301 /about/useful_for_rental/sravnenie-individualnogo-i-otvetstvennogo-khraneniya/ /
+# Redirect 301 /about/useful_for_rental/vremennoe-khranenie-na-sklade-kak-reshenie-dlya-neispolzuemykh-veshchey/ /
+# Redirect 301 /about/useful_for_rental/yacheyki-ot-1-mesyatsa-po-stoimosti-dnevnoy-arendy-kamery-khraneniya-na-vokzale/ /
+Redirect 301 /features_for_business/elektrichestvo-i-osveshchenie-v-boksakh/ /
+Redirect 301 /features_for_personal/elektrichestvo-i-osveshchenie-v-boksakh-ot-5-kv-m/ /
+Redirect 301 /for_business/arenda-ofisa-i-sklada-v-odnom-meste/ /
+Redirect 301 /for_business/khranenie-gruza-na-sklade/ /
+Redirect 301 /for_business/khranenie-imushchestva-kompanii/ /
+Redirect 301 /for_business/khranenie-oborudovaniya-na-sklade/ /
+Redirect 301 /for_business/khranenie-ofisnoy-mebeli/ /
+Redirect 301 /for_business/khranenie-stroitelnykh-ostatkov/ /
+# Redirect 301 /for_business/khranenie-tovarov/ /
+Redirect 301 /for_business/khranenie-vystavochnogo-oborudovaniya/ /
+# Redirect 301 /services/arenda-stellazhey/ /
+Redirect 301 /services/khranenie-arkhiva-kompanii/ /
+# Redirect 301 /services/sezonnoe-khranenie-velosipedov/ /
+Redirect 301 /services/sezonnoe-khranenie-velosipedov/ https://alfasklad.ru/storage/khranenie-velosipedov/
+# Redirect 301 /services/upakovochnye-materialy/ /
+Redirect 301 /services/uslugi-sklada/ /
+Redirect 301 /storage/arenda-pomeshcheniya-dlya-khraneniya-veshchey/ /
+Redirect 301 /storage/dlitelnoe-khranenie-veschey/ /
+#Redirect 301 /storage/khranenie-bytovoy-tehniki/ /
+#Redirect 301 /storage/khranenie-detskikh-veshchey/ /
+#Redirect 301 /storage/khranenie-domashnikh-veschey/ /
+#Redirect 301 /storage/khranenie-knig/ /
+Redirect 301 /storage/khranenie-kollektsiy/ /
+# Redirect 301 /storage/khranenie-kolyasok/ /
+#Redirect 301 /storage/khranenie-muzykalnykh-instrumentov/ /
+# Redirect 301 /storage/khranenie-sezonnykh-veshchey/ /
+# Redirect 301 /storage/pereezd-v-novuyu-kvartiru/ /
+
+Redirect 301 /features_for_business/ /for_business/
+Redirect 301 /features_for_personal/ /storage/
+
+Redirect 301 /services/khranenie-otdelnykh-veshchey/ /storage/
+Redirect 301 /services/usluga-dostavka/ /services/dostavka/
+Redirect 301 /services/upakovochnye-materialy/ /product/
+
+Redirect 301 /storage/arenda-kladovki-dlya-khraneniya-veshchey/ /rental_catalog/kladovki/
+Redirect 301 /storage/arenda-kladovoy-kladovki/ /rental_catalog/kladovki/
+
+
+
+
+<ifModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/html text/plain text/xml application/xml application/xhtml+xml text/css text/javascript application/javascript application/x-javascript
+</ifModule>
+
+
+<IfModule mod_headers.c>
+	<FilesMatch "\.(flv|swf|ico|gif|jpg|jpeg|png|js|css|txt|webp|ttf|woff|eot|svg|cssgz|jsgz)$">
+            Header set Cache-Control "max-age=604800, public"
+    </FilesMatch>
+	<FilesMatch "\.(js|css|swf)$">
+		Header set Cache-Control "max-age=604800"
+	</FilesMatch>
+</IfModule>
+
+<ifModule mod_expires.c>
+    ExpiresActive On
+
+    ExpiresDefault "access plus 5 seconds"
+
+    ExpiresByType image/x-icon "access plus 2592000 seconds"
+    ExpiresByType image/jpeg "access plus 2592000 seconds"
+    ExpiresByType image/png "access plus 2592000 seconds"
+    ExpiresByType image/gif "access plus 2592000 seconds"
+    ExpiresByType application/x-shockwave-flash "access plus 2592000 seconds"
+    ExpiresByType text/css "access plus 2592000 seconds"
+    ExpiresByType text/javascript "access plus 2592000 seconds"
+    ExpiresByType application/javascript "access plus 2592000 seconds"
+    ExpiresByType application/x-javascript "access plus 2592000 seconds"
+    ExpiresByType application/xhtml+xml "access plus 600 seconds"
+    ExpiresByType image/svg+xml "access plus 60 day"
+</ifModule>
+
+AddType text/css cssgz
+AddType image/svg+xml svgz
+AddType text/javascript jsgz
+AddEncoding x-gzip .cssgz .jsgz .svgz

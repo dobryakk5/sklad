@@ -1,0 +1,21 @@
+<?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");?>
+<? 
+use Bitrix\Main\Loader;
+
+$rsUsers = CUser::GetList(($by="id"), ($order="asc"), [], ['SELECT' => ['ID', 'NAME', 'UF_USER_BALANCE']]);
+
+		$user = new \CUser;
+
+while($arUser = $rsUsers->Fetch()) {
+	//if ($arUser['ID'] == 8743) {
+	echo $arUser['ID'].' '.$arUser['NAME'].' '.$arUser['UF_USER_BALANCE']."<br>";
+	$arUser['UF_USER_BALANCE'] = -1 * $arUser['UF_USER_BALANCE'];
+	$user->Update($arUser['ID'], ['UF_USER_BALANCE' => $arUser['UF_USER_BALANCE']]);
+
+	//}
+}
+
+
+
+
+?>

@@ -1,0 +1,54 @@
+.lk_table table.table {
+    margin-top: 0;
+	margin-bottom: 0;
+}
+.lk_table table.table tr th,
+.lk_table table.table tr td {
+	padding: 10px;
+    text-align: left;
+    vertical-align: middle;
+}
+.lk_table table.table tr th {
+    background-color: #fff;
+    color: #333;
+    /*font-weight: 500;*/
+    /*border-bottom: 2px solid #f1f1f1;*/
+    font-size: 1em;
+}
+.lk_table table.table tr:hover {
+    background: none;
+}
+.lk_table table.table tr:hover td:first-of-type {
+    padding-left: 10px !important; 
+    border-left: none !important;
+}
+.lk_table table.table tr:hover td:last-of-type {
+    padding-right: 10px !important; 
+    border-right: none !important;
+}
+@media(min-width: 768px) {
+	.lk_table table.table tr td.number {
+		max-width: 170px;
+	}
+	.lk_table table.table tr td.buttons {
+		max-width: 150px;
+	}
+}
+.lk_table table.table tr td .icon {
+    margin-bottom: 5px;
+}
+.lk_table table.table tr:last-of-type td {
+    border-bottom: none;
+}
+@media(max-width: 767px) {
+    .lk_table table.table tr {
+        border-bottom: 1px solid #ef5a54;
+    }
+}
+.lk_table table.table tr td .invoice_link a {
+    text-transform: lowercase;
+}
+.lk_table .upd_request {
+	font-size: 0.8em;
+	color: #ef5a54;
+}

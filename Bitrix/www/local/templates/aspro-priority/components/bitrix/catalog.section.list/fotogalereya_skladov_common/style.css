@@ -1,0 +1,19 @@
+.photogallery_list_sections .body-info{
+    margin-bottom: 30px;
+}
+
+.photogallery_item{
+    display: inline-block;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    transition: opacity 0.3s ease;
+}
+
+.photogallery_list_item{
+    margin-bottom: 30px;
+}
+
+.photogallery_item:hover{
+    opacity: 0.7;
+
+}

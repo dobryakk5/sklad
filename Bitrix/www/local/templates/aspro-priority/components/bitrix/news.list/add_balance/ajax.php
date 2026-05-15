@@ -1,0 +1,124 @@
+<? require_once $_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php";
+
+use Bitrix\Main\Context,
+	Bitrix\Currency\CurrencyManager,
+	Bitrix\Sale\Order,
+	Bitrix\Sale\Basket,
+	Bitrix\Sale\Delivery,
+	Bitrix\Sale\PaySystem,
+	Bitrix\Sale\Registry;
+
+use Api\Models\User;
+use Api\DomainServices\Orders\OrdersService;
+
+Bitrix\Main\Loader::includeModule("sale");
+Bitrix\Main\Loader::includeModule("catalog");
+Bitrix\Main\Loader::includeModule("iblock");
+
+global $USER;
+
+if ($_REQUEST["ACTION"] == "ADD_BALANCE") {
+	if (strlen($_REQUEST["PRODUCT_ID"]) > 0) {
+		//очищаем корзину
+		CSaleBasket::DeleteAll(CSaleBasket::GetBasketUserID());
+
+		//добавляем в корзину товар
+		$basket = \Bitrix\Sale\Basket::loadItemsForFUser(\Bitrix\Sale\Fuser::getId(), Bitrix\Main\Context::getCurrent()->getSite());
+		$productId = intval($_REQUEST["PRODUCT_ID"]);
+		$quantity = 1;
+		$item = $basket->createItem("catalog", $productId);
+
+                $arSetFields = array(
+                        "QUANTITY" => $quantity,
+                        "CURRENCY" => \Bitrix\Currency\CurrencyManager::getBaseCurrency(),
+                        "LID" => "s1",
+                        "VAT_INCLUDED" => "Y",
+                        "VAT_RATE" => 0.22,
+                );
+                if (strlen($_REQUEST["CUSTOM_SUM"]) > 0) {
+                        $arSetFields["CUSTOM_PRICE"] = "Y";
+                        $arSetFields["PRICE"] = $_REQUEST["CUSTOM_SUM"];
+                }
+                $arForPropCollection = [];
+
+		if (strlen($_REQUEST["CONTRACT_GUID"]) > 0) {
+			//записываем свойства
+
+			$basketPropertyCollection = $item->getPropertyCollection();
+			$arForPropCollection = array(
+				array(
+					"NAME" => "Номер договора",
+					"CODE" => "CONTRACT_NUMBER",
+					"VALUE" => $_REQUEST["CONTRACT_NUMBER"],
+					"SORT" => 100,
+				),
+				array(
+					"NAME" => "ID договора",
+					"CODE" => "CONTRACT_ID",
+					"VALUE" => $_REQUEST["CONTRACT_ID"],
+					"SORT" => 110,
+				),
+				array(
+					"NAME" => "GUID договора",
+					"CODE" => "CONTRACT_GUID",
+					"VALUE" => $_REQUEST["CONTRACT_GUID"],
+					"SORT" => 120,
+				)
+			);
+
+			//ищем склад по боксу в договоре
+			if (strlen($_REQUEST["BOX_ID"]) > 0) {
+				$db_sections = CIBlockElement::GetElementGroups($_REQUEST["BOX_ID"], true);
+				if ($arSect = $db_sections->Fetch()) {
+					$arForPropCollection[] = array(
+						"NAME" => "Внешний код склада",
+						"CODE" => "SKLAD_XML_ID",
+						"VALUE" => $arSect["XML_ID"],
+						"SORT" => 130,
+					);
+				}
+			}
+
+			$basketPropertyCollection->setProperty($arForPropCollection);
+		}
+
+		$item->setFields($arSetFields);
+
+		$orderId = '';
+		$user = new User(['ID' => $USER->GetID()]);
+
+		$orderService = new OrdersService();
+		$orderId = $orderService->createOrder($user, $basket, 3);
+
+		/**
+		 * Если у клиента сохранён способ оплаты
+		 * отменено, нужно для кнопки сохранить карту (сохранение реквизитов оплаты у нас без подключения автоплатежа)
+		 */
+		/*
+		if ($pmid = userSavedPayment($USER->GetID())) {
+			$registry = Registry::getInstance(Registry::REGISTRY_TYPE_ORDER);
+			$orderClassName = $registry->getOrderClassName();
+
+			if ($order = $orderClassName::loadByAccountNumber($orderId)) {
+				$paymentCollection = $order->getPaymentCollection();
+
+				$payment = $paymentCollection[0];
+				$payment->setField('PS_RECURRING_TOKEN', $pmid);
+				if (!$payment->isPaid()) {
+					$paySystemService = PaySystem\Manager::getObjectById($payment->getPaymentSystemId());
+					if (!empty($paySystemService)) {
+						$initResult = $paySystemService->repeatRecurrent($payment);
+					}
+				}
+			}
+
+			echo 'autopay';
+		} else {
+		*/
+			echo $orderId;
+		//}
+	}
+}
+?>
+
+<? require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/epilog_after.php"); ?>

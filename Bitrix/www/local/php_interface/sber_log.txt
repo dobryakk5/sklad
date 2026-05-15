@@ -1,0 +1,1 @@
+amount=10000&orderNumber=3423412312&description=%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2+%D0%98%D0%B2%D0%B0%D0%BD&currency=643&password=%3Fs2a8Q5%3FT&userName=alfasklad-api&returnUrl=https%3A%2F%2Falfasklad.ru%2Fpayment%2Fsuccess_payment%2F&failUrl=https%3A%2F%2Falfasklad.ru%2Fpayment%2Fsuccess_payment%2F

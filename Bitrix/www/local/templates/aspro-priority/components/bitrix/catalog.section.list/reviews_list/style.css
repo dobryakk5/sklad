@@ -1,0 +1,51 @@
+@media (max-width: 991px) {
+	h4.mt-30-xs {
+		margin-top: 30px !important;
+	}
+}
+
+.sort-reviews {
+	border-bottom: 1px solid #f1f1f1;
+	padding-bottom: 30px;
+}
+.sort-reviews .sort-item {
+	position: relative;
+	display: inline-block;
+	color: #999;
+	margin-left: 10px;
+}
+.sort-reviews .sort-item.active {
+	color: #333;
+	margin-right: 25px;
+}
+.sort-reviews .sort-item.active span::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	margin-top: -6px;
+	right: 0;
+	margin-right: -15px;
+	width: 7px;
+	height: 13px;
+	background: url('/bitrix/templates/aspro-priority/images/svg/header_icons.svg') 0 -65px no-repeat;
+}
+.sort-reviews .sort-item.active.desc span::after {
+	-webkit-transform: rotate(270deg);
+	-moz-transform: rotate(270deg);
+	-ms-transform: rotate(270deg);
+	-o-transform: rotate(270deg);
+	transform: rotate(270deg);
+}
+.sort-reviews .sort-item.active.asc span::after {
+	-webkit-transform: rotate(90deg);
+	-moz-transform: rotate(90deg);
+	-ms-transform: rotate(90deg);
+	-o-transform: rotate(90deg);
+	transform: rotate(90deg);
+}
+
+@media (max-width: 991px) {
+	.send_review_button {
+		margin-top: 20px;
+	}
+}

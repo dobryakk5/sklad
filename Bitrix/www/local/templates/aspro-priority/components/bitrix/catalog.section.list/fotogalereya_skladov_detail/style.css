@@ -1,0 +1,66 @@
+.photogallery_slider .flex-control-nav {
+    bottom: 10px;
+	display: block !important;
+}
+
+.photogallery_slider .thmb_wrap .thmb {
+	max-width: none !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+.photogallery_slider .zoom {
+    top: 0;
+    right: 0;
+    background: none;
+}
+
+.photogallery_slider #carousel .slides li {
+	opacity: 0.5;
+	cursor: pointer;
+
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+}
+.photogallery_slider #carousel .slides li.flex-active-slide {
+	opacity: 1;
+}
+
+
+/*************************/
+
+.photogallery_contacts_block {
+	padding-left: 30px;
+}
+@media (max-width: 991px) {
+	.photogallery_contacts_block {
+		padding-left: 0;
+	}
+}
+.photogallery_contacts_block p.address {
+	font-weight: bold;
+	font-size: 1.2em;
+	margin-bottom: 40px;
+}
+@media (max-width: 991px) {
+	.photogallery_contacts_block p.address {
+		padding-top: 20px;
+	}
+}
+.photogallery_contacts_block p.work-time-label {
+	font-weight: bold;
+	font-size: 1.2em;
+	margin: 0 0 8px 0;
+}
+.photogallery_contacts_block p.work-time {
+	font-size: 1.2em;
+	margin: 0 0 8px 0;
+}
+.photogallery_contacts_block .work-time-block :last-child {
+	margin-bottom: 40px;
+}
+
+.photogallery_contacts_block #map {
+	margin-bottom: 50px;
+}

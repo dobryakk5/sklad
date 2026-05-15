@@ -1,0 +1,10 @@
+@media(max-width: 991px) {
+	.search-tags-cloud {
+		margin-bottom: 30px !important;
+	}
+}
+.search-tags-cloud .tags a.active {
+	background:#ef5a54;
+	border-color:#ef5a54;
+	color:#fff;
+}

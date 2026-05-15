@@ -1,0 +1,33 @@
+.rental_catalog_slider {
+	position: relative;
+}
+.box_filter_slider {
+	min-height: 413px;
+}
+.box_filter_slider .flexslider {
+	margin-bottom: 0;
+}
+.box_filter_slider .thmb_wrap .thmb {
+	max-width: none !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+.box_filter_slider #carousel .slides li {
+	opacity: 0.5;
+	cursor: pointer;
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+}
+.box_filter_slider #carousel .slides li.flex-active-slide {
+	opacity: 1;
+}
+.box_filter_slider .flexslider .flex-next {
+    right: -9px;
+    margin-top: -25px;
+}
+.box_filter_slider .flexslider .flex-prev {
+    left: -9px;
+    margin-top: -25px;
+}

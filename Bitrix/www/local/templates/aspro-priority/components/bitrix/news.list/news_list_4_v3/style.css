@@ -1,0 +1,10 @@
+.useful_for_rental.item-views.news-items .item .period {
+	bottom: auto;
+}
+
+.item-views .title-news h5 {
+    /*padding-right: 165px;*/
+}
+.item-views .title-news .show_all {
+    margin-top: 8px;
+}

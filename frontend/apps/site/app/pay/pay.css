@@ -1,0 +1,132 @@
+.pay-page {
+  min-height: 680px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 20px;
+  background: #f6f8fb;
+}
+
+.pay-panel {
+  width: min(100%, 560px);
+  border: 1px solid #dfe5ee;
+  border-radius: 8px;
+  background: #fff;
+  padding: 32px;
+  box-shadow: 0 18px 42px rgba(29, 45, 68, 0.08);
+}
+
+.pay-brand {
+  margin-bottom: 12px;
+  color: #d71920;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.pay-panel h1 {
+  margin: 0 0 24px;
+  color: #162033;
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.pay-summary {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid #e6ebf2;
+  border-radius: 8px;
+  background: #e6ebf2;
+}
+
+.pay-summary div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.pay-summary span {
+  color: #6c7789;
+  font-size: 14px;
+}
+
+.pay-summary strong {
+  max-width: 68%;
+  color: #162033;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.pay-expiry,
+.pay-message,
+.pay-error {
+  margin: 18px 0 0;
+  color: #5f6b7c;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.pay-error {
+  color: #b42318;
+}
+
+.pay-button,
+.pay-support {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: #d71920;
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pay-button:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+.pay-support {
+  background: #162033;
+}
+
+@media (max-width: 640px) {
+  .pay-page {
+    align-items: flex-start;
+    min-height: 560px;
+    padding: 28px 14px;
+  }
+
+  .pay-panel {
+    padding: 24px 18px;
+  }
+
+  .pay-panel h1 {
+    font-size: 26px;
+  }
+
+  .pay-summary div {
+    display: block;
+  }
+
+  .pay-summary strong {
+    display: block;
+    max-width: none;
+    margin-top: 6px;
+    text-align: left;
+  }
+}

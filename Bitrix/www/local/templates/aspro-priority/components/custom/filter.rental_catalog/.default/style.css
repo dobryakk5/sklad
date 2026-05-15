@@ -1,0 +1,99 @@
+.box_filter {}
+.box_filter .sale_block {
+	background-color: #f0f4f5;
+	padding: 30px 20px;
+	border-left: 2px solid #ef5a54;
+	margin-top: 30px;
+}
+.box_filter .sale_block .sale_title {
+	font-size: 1.5em;
+	color: #333;
+	line-height: 36px;
+}
+.box_filter .sale_block .sale_buttons {
+	text-align: center;
+}
+@media(max-width: 991px) {
+	.box_filter .sale_block .sale_title {
+		text-align: center;
+	}
+	.box_filter .sale_block .sale_buttons {
+		margin-top: 15px;
+	}
+}
+.box_filter .sale_block .sale_buttons .sale_btn {
+	display: inline-block;
+}
+.box_filter .sale_block .sale_buttons .sale_btn .icon-text {
+	border: 1px solid #ef5a54;
+	cursor: pointer;
+}
+.box_filter .sale_block .sale_buttons .sale_btn .icon-text .styled_red {
+	font-size: 1.1em;
+	font-weight: bold;
+}
+.box_filter .sale_block .sale_buttons .sale_btn .icon-text.grey .styled_red {
+	color: #ef5a54;
+}
+.box_filter .start_price {
+	margin: 20px 0;
+	font-size: 1.1em;
+	color: #333;
+}
+.box_filter .start_price .price {
+	font-weight: 500;
+	font-size: 1.5em;
+}
+
+.box_filter .buttons .ili {
+	line-height: 48px;
+}
+.box_filter .buttons .btn {
+	width: 100%;
+	white-space: pre-wrap;
+}
+.box_filter .buttons_hidden {
+	display: none;
+}
+
+.box_filter .filter_block {
+	margin-top: 20px;
+}
+.box_filter .filter_block .title {
+	font-size: 1.1em;
+	color: #333;
+	margin-bottom: 15px;
+	height: 34px;
+}
+.box_filter .filter_block .title select {
+	display: inline-block;
+	margin-left: 10px;
+	width: 70px;
+	padding: 5px 0px 5px 7px;
+}
+
+/****** range customize ******/
+.box_filter .filter_block .irs--round .irs-from,
+.box_filter .filter_block .irs--round .irs-to,
+.box_filter .filter_block .irs--round .irs-single {
+    background-color: #ef5a54;
+}
+.box_filter .filter_block .irs--round .irs-from::before,
+.box_filter .filter_block .irs--round .irs-to::before,
+.box_filter .filter_block .irs--round .irs-single::before {
+    border-top-color: #ef5a54;
+}
+.box_filter .filter_block .irs--round .irs-handle {
+    border-color: #ef5a54;
+    box-shadow: 0 1px 3px rgba(238, 89, 53, 0.3);
+}
+.box_filter .filter_block .irs--round .irs-handle.state_hover,
+.box_filter .filter_block .irs--round .irs-handle:hover {
+	background-color: #f8f9fb;
+}
+.box_filter .filter_block .irs--round .irs-bar {
+    background-color: #ef5a54;
+}
+.rental_catalog .rental_catalog_list .ajax_load_btn_pagination {
+	display: none;
+}

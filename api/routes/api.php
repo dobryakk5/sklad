@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\SeoMetaController as AdminSeoMetaController;
 use App\Http\Controllers\Api\BoxController;
 use App\Http\Controllers\Api\CabinetController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\DebtPaymentController;
+use App\Http\Controllers\Api\Internal\DebtPaymentStatusController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SeoMetaController;
 use App\Http\Controllers\Api\WarehouseController;
@@ -110,3 +112,19 @@ Route::prefix('cabinet')->middleware([
         Route::post('/payment-method/unlink', [CabinetController::class, 'notImplemented']);
     });
 });
+
+Route::prefix('debt-payments')
+    ->middleware(['api', 'throttle:30,1'])
+    ->group(function () {
+        Route::get('/{token}', [DebtPaymentController::class, 'show'])
+            ->where('token', '[a-f0-9]{32}');
+
+        Route::post('/{token}/pay', [DebtPaymentController::class, 'pay'])
+            ->where('token', '[a-f0-9]{32}');
+    });
+
+Route::prefix('internal')
+    ->middleware(['api'])
+    ->group(function () {
+        Route::post('/debt-payments/payment-status', [DebtPaymentStatusController::class, 'store']);
+    });

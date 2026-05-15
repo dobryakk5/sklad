@@ -1,0 +1,245 @@
+.rental_catalog_slider {
+	position: relative;
+}
+.box_filter_slider {
+	min-height: 380px;
+}
+.box_filter_slider .flexslider {
+	margin-bottom: 0 !important;
+}
+.box_filter_slider .thmb_wrap .thmb {
+	max-width: none !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+.box_filter_slider #carousel .slides li {
+	opacity: 0.5;
+	cursor: pointer;
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+}
+.box_filter_slider #carousel .slides li.flex-active-slide {
+	opacity: 1;
+}
+.box_filter_slider .flexslider .flex-next {
+    right: -9px;
+    margin-top: -25px;
+}
+.box_filter_slider .flexslider .flex-prev {
+    left: -9px;
+    margin-top: -25px;
+}
+
+.calculator .calculator_result {
+	position: relative;
+}
+.calculator .calculator_result .square_result.small {
+	margin-bottom: 30px;
+	color: #333;
+	font-size: 1.1em;
+}
+.calculator .calculator_result .square_result.small span {
+	color: #ef5a54;
+}
+.calculator .calculator_result .selected_items_list {
+	height: 535px;
+	direction: rtl;
+}
+.calculator .calculator_result .selected_items_list .scroll {
+	direction: ltr;
+}
+
+
+.calculator .calculator_result .selected_items_list .item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 0;
+	position: relative;
+	color: #333;
+}
+.calculator .calculator_result .selected_items_list .item .icon.yes {
+	flex-basis: 35px;
+}
+.calculator .calculator_result .selected_items_list .item .icon.yes img {
+	display: block;
+	margin-top: -4px;
+}
+.calculator .calculator_result .selected_items_list .item .name {
+	flex-basis: auto;
+	width: 70%;
+	line-height: 1em;
+}
+.calculator .calculator_result .selected_items_list .square {
+	align-self: center;
+	flex-basis: 53px;
+}
+.calculator .calculator_result .selected_items_list .icon.delete {
+	flex-basis: 20px;
+	text-align: right;
+	cursor: pointer;
+}
+@media(min-width: 991px) {
+	.calculator .calculator_result .shadow-box {
+		margin-top: 0px;
+	}
+}
+@media(max-width: 991px) {
+	.calculator .calculator_result .selected_items_list .item .name {
+		width: 60%;
+	}
+}
+
+.calculator .ss-scroll {
+    width: 3px;
+	opacity: 1;
+}
+.calculator .row.slim {
+    margin-left: 0;
+    margin-right: 0;
+}
+.calculator .row.slim > [class^="col-"], 
+.calculator .slim > [class*=" col-"] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.calculator .calculator_items_list .item {
+	border: 1px solid #eff1f5;
+	padding: 15px;
+	margin-right: -1px;
+	margin-bottom: -1px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	min-height: 64px;
+}
+.calculator .calculator_items_list .item .icon {
+	min-width: 40px;
+}
+.calculator .calculator_items_list .item .name {
+	flex-basis: 70%;
+	max-height: 30px;
+	overflow: hidden;
+	font-size: 0.8em;
+	line-height: 1.2em;
+}
+.calculator .calculator_items_list .item .counter {
+	flex-basis: 80px;
+}
+.calculator .calculator_items_list .item .counter input {
+	width: 80px;
+	border: 1px solid #e4e4e4;
+	text-align: center;
+	background-color: #f8f9fb;
+	border-radius: 5px;
+}
+
+.calculator .calculator_result_bottom_container {
+	position: relative;
+}
+.calculator .calculator_result_bottom {
+	margin-top: 30px;
+	padding: 30px;
+	color: #333;
+}
+.calculator .calculator_result_bottom .square_result {
+	font-size: 1.5em;
+	margin-bottom: 10px;
+}
+.calculator .calculator_result_bottom .square_result span {
+	color: #ef5a54;
+}
+.calculator .calculator_result_bottom .square_result_text {
+	line-height: 1.2em;
+	margin-bottom: 20px;
+}
+.calculator .calculator_result_bottom .title {
+	font-size: 1.15em;
+}
+.calculator .calculator_result_bottom ul.list {
+	font-size: 0.95em;
+	line-height: 1.4em;
+}
+
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list {
+	height: 315px;
+	margin-top: 10px;
+	margin-bottom: 15px;
+	background-color: #ffffff;
+	padding: 10px;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad {
+	display: flex;
+	padding: 4px 0;
+	border-top: 1px solid #e4e4e4;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad:first-child {
+	border-top: none;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .info {
+	flex-basis: 90%;
+	cursor: pointer;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .info .address {
+	font-size: 0.9em;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .checkbox_container {
+	flex-basis: 40px;
+	text-align: right;
+}
+@media(max-width: 991px) {
+	.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .info {
+		flex-basis: 80%;
+	}
+}
+
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .value {
+    position: absolute;
+    right: 0;
+    margin-right: 20px;
+	margin-top: 4px;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .value input[type=checkbox] {
+    display: none;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .value input[type=checkbox] + label {
+    z-index: 1;
+    cursor: pointer;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .value input[type=checkbox] + label:before {
+    content: " ";
+    color: #000;
+    display: inline-block;
+    font: 15px/20px Arial;
+    position: relative;
+    text-align: center;
+    text-indent: 0px;
+    width: 30px;
+    height: 30px;
+    background: #ffffff;
+    border: 1px solid #a5a5a5;
+    border-image: initial;
+    vertical-align: middle;
+    cursor: pointer;
+    z-index: 1;
+    margin-top: 5px;
+}
+.calculator .calculator_result_bottom .sklad_list_container .sklad_list .sklad .value input[type=checkbox]:checked + label:before {
+    content: "\2713";
+    font-size: 20px;
+    color: #ef5a54;
+    line-height: 30px;
+}
+@media(max-width: 991px) {
+	.calculator .calculator_result_bottom .sklad_list_container {
+		margin-bottom: 30px;
+	}
+}
+
+@media(max-width: 991px) {
+	.calculator .mobile_slider {
+		margin-top: 30px;
+	}
+}

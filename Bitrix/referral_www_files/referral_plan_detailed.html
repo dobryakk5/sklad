@@ -1,0 +1,500 @@
+
+<style>
+:root {
+  --c1: #1a1a2e;
+  --accent: #6c63ff;
+  --teal: #00c9a7;
+  --coral: #ff6b6b;
+  --amber: #ffd166;
+  --gray: #8b8fa8;
+  --surface: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.09);
+}
+
+body { background: transparent; margin: 0; padding: 0; font-family: 'Courier New', monospace; color: var(--color-text-primary); }
+
+.plan { padding: 0 0 24px; }
+
+.phase {
+  margin-bottom: 6px;
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--color-background-secondary);
+  transition: background 0.15s;
+}
+.phase-header:hover { background: var(--color-background-tertiary); }
+
+.phase-num {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.p1 .phase-num { background: #ffd16622; color: #ffd166; border: 1px solid #ffd16644; }
+.p2 .phase-num { background: #6c63ff22; color: #a89cff; border: 1px solid #6c63ff44; }
+.p3 .phase-num { background: #00c9a722; color: #00c9a7; border: 1px solid #00c9a744; }
+.p4 .phase-num { background: #ff6b6b22; color: #ff9f9f; border: 1px solid #ff6b6b44; }
+.p5 .phase-num { background: #8b8fa822; color: #b0b4cc; border: 1px solid #8b8fa844; }
+
+.phase-title { font-size: 14px; font-weight: 600; flex: 1; color: var(--color-text-primary); font-family: sans-serif; }
+.phase-sub { font-size: 12px; color: var(--color-text-secondary); font-family: sans-serif; }
+.chevron { font-size: 12px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+.phase.open .chevron { transform: rotate(90deg); }
+
+.phase-body { display: none; border-top: 1px solid var(--color-border-tertiary); }
+.phase.open .phase-body { display: block; }
+
+.section {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+}
+.section:last-child { border-bottom: none; }
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-bottom: 10px;
+  font-family: sans-serif;
+}
+
+.task {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  font-family: sans-serif;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+.task:last-child { margin-bottom: 0; }
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  margin-top: 6px; flex-shrink: 0;
+}
+.d-amber { background: #ffd166; }
+.d-purple { background: #a89cff; }
+.d-teal { background: #00c9a7; }
+.d-coral { background: #ff9f9f; }
+.d-gray { background: #8b8fa8; }
+
+code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-tertiary);
+}
+
+.code-block {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--color-background-tertiary);
+  border: 1px solid var(--color-border-tertiary);
+  margin: 8px 0;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--color-text-secondary);
+}
+.kw { color: #a89cff; }
+.fn { color: #00c9a7; }
+.str { color: #ffd166; }
+.cmt { color: #555b7a; }
+.tag { color: #ff9f9f; }
+
+.note {
+  font-size: 12px;
+  font-family: sans-serif;
+  color: var(--color-text-tertiary);
+  padding: 8px 12px;
+  border-left: 2px solid var(--color-border-secondary);
+  margin: 8px 0;
+  font-style: italic;
+}
+
+.pill {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+  vertical-align: middle;
+  font-family: sans-serif;
+  letter-spacing: 0.04em;
+}
+.pill-new { background: #00c9a722; color: #00c9a7; border: 1px solid #00c9a744; }
+.pill-mod { background: #ffd16622; color: #ffd166; border: 1px solid #ffd16644; }
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: var(--color-background-tertiary);
+  font-size: 12px;
+}
+.file-path { font-family: 'Courier New', monospace; color: var(--color-text-secondary); flex: 1; }
+.file-action { font-size: 10px; font-family: sans-serif; font-weight: 700; color: var(--color-text-tertiary); }
+
+.summary-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: sans-serif; margin-top: 6px; }
+.summary-table th { padding: 6px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); border-bottom: 1px solid var(--color-border-tertiary); }
+.summary-table td { padding: 7px 10px; border-bottom: 1px solid var(--color-border-tertiary); color: var(--color-text-secondary); vertical-align: top; }
+.summary-table tr:last-child td { border-bottom: none; }
+</style>
+
+<div class="plan">
+
+<div class="phase p1 open" id="ph1">
+<div class="phase-header" onclick="toggle('ph1')">
+  <span class="phase-num">Фаза 1</span>
+  <div>
+    <div class="phase-title">CRM — HelperRest.php</div>
+    <div class="phase-sub">Приём данных от 1С, создание/обновление реферала</div>
+  </div>
+  <span class="chevron">▶</span>
+</div>
+<div class="phase-body">
+
+<div class="section">
+<div class="section-label">Что добавить</div>
+<div class="task"><span class="dot d-amber"></span><span>Метод <code>addReferralFrom1C($params)</code> — создаёт новую запись реферала в CRM. По аналогии с <code>addInvoiceFrom1C()</code>: ищет существующего пользователя, создаёт CRM-сущность (смарт-процесс или доп. поле контакта), пишет диагностический лог.</span></div>
+<div class="task"><span class="dot d-amber"></span><span>Метод <code>updateReferralFrom1C($params)</code> — обновляет существующий реферал (статус, сумма бонуса, дата активации). Вызывается при каждом изменении в 1С.</span></div>
+<div class="task"><span class="dot d-amber"></span><span>Поиск дублей по <code>CONTACT_ID</code> + <code>UF_REF_CODE</code> перед созданием — чтобы не множить записи при повторных вызовах.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Параметры входящего payload из 1С</div>
+<div class="code-block"><span class="cmt">// Ожидаемая структура массива $params от 1С</span>
+[
+  <span class="str">'CONTACT_ID'</span>   => <span class="str">'...'</span>,  <span class="cmt">// ID контакта в CRM</span>
+  <span class="str">'REF_CODE'</span>     => <span class="str">'ALFA-XXXXX'</span>,
+  <span class="str">'STATUS'</span>       => <span class="str">'ACTIVE'</span>,  <span class="cmt">// ACTIVE | INACTIVE | PENDING</span>
+  <span class="str">'BONUS_AMOUNT'</span> => <span class="str">'500'</span>,    <span class="cmt">// рублей</span>
+  <span class="str">'REFERRAL_URL'</span> => <span class="str">'https://alfasklad.ru/?ref=ALFA-XXXXX'</span>,
+  <span class="str">'DATE_CREATE'</span>  => <span class="str">'2025-01-01'</span>,
+]</div>
+</div>
+
+<div class="section">
+<div class="section-label">Файл</div>
+<div class="file-row"><span class="file-path">local/php_interface/classes/enum/HelperRest.php</span><span class="pill pill-mod">MOD</span></div>
+<div class="note">addInvoiceFrom1C() — рядом добавляем addReferralFrom1C() и updateReferralFrom1C() в том же классе.</div>
+</div>
+
+</div>
+</div>
+
+<div class="phase p2" id="ph2">
+<div class="phase-header" onclick="toggle('ph2')">
+  <span class="phase-num">Фаза 2</span>
+  <div>
+    <div class="phase-title">CRM — Rest.php</div>
+    <div class="phase-sub">REST-endpoint для 1С + event handler → сайт</div>
+  </div>
+  <span class="chevron">▶</span>
+</div>
+<div class="phase-body">
+
+<div class="section">
+<div class="section-label">REST-методы для 1С</div>
+<div class="task"><span class="dot d-purple"></span><span>Зарегистрировать в <code>OnRestServiceBuildDescription()</code> два новых метода: <code>enum.addReferralFrom1C</code> и <code>enum.updateReferralFrom1C</code>. 1С будет вызывать их так же, как сейчас вызывает <code>enum.updateOrderDeal</code>.</span></div>
+<div class="task"><span class="dot d-purple"></span><span>Каждый метод логирует вызов в <code>addReferralsFrom1C.txt</code> — по аналогии с <code>updateDealsFrom1C.txt</code>.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Event handler: CRM → сайт</div>
+<div class="task"><span class="dot d-purple"></span><span>Написать <code>OnAfterReferralAddHandler()</code> — срабатывает после создания/обновления реферальной записи в CRM.</span></div>
+<div class="task"><span class="dot d-purple"></span><span>Handler формирует payload и вызывает <code>HelperRest::SendRequest()</code> с <code>action=addReferral</code> на сайт.</span></div>
+<div class="task"><span class="dot d-purple"></span><span>Аналог: <code>OnAfterCrmInvoiceAddHandler</code>, который сейчас делает то же самое для счетов.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Payload на сайт</div>
+<div class="code-block"><span class="cmt">// Что SendRequest() отправляет на /exchange/index.php</span>
+[
+  <span class="str">'action'</span>       => <span class="str">'addReferral'</span>,
+  <span class="str">'key'</span>          => <span class="str">KEY</span>,
+  <span class="str">'USER_ID'</span>      => <span class="str">'...'</span>,  <span class="cmt">// ID пользователя сайта</span>
+  <span class="str">'REF_CODE'</span>     => <span class="str">'ALFA-XXXXX'</span>,
+  <span class="str">'STATUS'</span>       => <span class="str">'ACTIVE'</span>,
+  <span class="str">'BONUS_AMOUNT'</span> => <span class="str">'500'</span>,
+  <span class="str">'REFERRAL_URL'</span> => <span class="str">'https://alfasklad.ru/?ref=ALFA-XXXXX'</span>,
+  <span class="str">'DATE_CREATE'</span>  => <span class="str">'2025-01-01'</span>,
+]</div>
+</div>
+
+<div class="section">
+<div class="section-label">Файл</div>
+<div class="file-row"><span class="file-path">local/php_interface/classes/enum/Rest.php</span><span class="pill pill-mod">MOD</span></div>
+</div>
+
+</div>
+</div>
+
+<div class="phase p3" id="ph3">
+<div class="phase-header" onclick="toggle('ph3')">
+  <span class="phase-num">Фаза 3</span>
+  <div>
+    <div class="phase-title">Сайт — exchange/index.php + Exchange::AddReferral()</div>
+    <div class="phase-sub">Приём команды от CRM, запись в HL-блок</div>
+  </div>
+  <span class="chevron">▶</span>
+</div>
+<div class="phase-body">
+
+<div class="section">
+<div class="section-label">Маршрутизация в index.php</div>
+<div class="task"><span class="dot d-teal"></span><span>Добавить ветку <code>case 'addReferral'</code> в switch по <code>$action</code> — по аналогии с <code>case 'addInvoice'</code>.</span></div>
+<div class="task"><span class="dot d-teal"></span><span>Добавить ветку <code>case 'deleteReferral'</code> на случай отзыва кода из 1С.</span></div>
+<div class="task"><span class="dot d-teal"></span><span>Входные данные логировать в <code>rest_log.txt</code> (уже сделано глобально — убедиться что новая ветка попадает в лог).</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Метод Exchange::AddReferral()</div>
+<div class="task"><span class="dot d-teal"></span><span>Ищет пользователя сайта по <code>USER_ID</code> или <code>EMAIL</code>.</span></div>
+<div class="task"><span class="dot d-teal"></span><span>Проверяет существование записи в HL-блоке <code>ReferralProfile</code> по <code>USER_ID</code>.</span></div>
+<div class="task"><span class="dot d-teal"></span><span>Создаёт или обновляет запись: <code>UF_REF_CODE</code>, <code>UF_STATUS</code>, <code>UF_BONUS_AMOUNT</code>, <code>UF_REFERRAL_URL</code>, <code>UF_DATE_CREATE</code>.</span></div>
+<div class="task"><span class="dot d-teal"></span><span>Возвращает JSON-ответ с результатом — CRM логирует успех/ошибку.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Структура кода</div>
+<div class="code-block"><span class="kw">case</span> <span class="str">'addReferral'</span>:
+    $result = Exchange::<span class="fn">AddReferral</span>($data);
+    <span class="kw">echo</span> json_encode($result);
+    <span class="kw">break</span>;
+
+<span class="cmt">// В классе Exchange:</span>
+<span class="kw">public static function</span> <span class="fn">AddReferral</span>(<span class="tag">$data</span>) {
+    <span class="cmt">// 1. найти USER_ID</span>
+    <span class="tag">$userId</span> = self::<span class="fn">getUserIdByParam</span>(<span class="tag">$data</span>[<span class="str">'USER_ID'</span>]);
+    <span class="kw">if</span> (!<span class="tag">$userId</span>) <span class="kw">return</span> [<span class="str">'error'</span> => <span class="str">'user not found'</span>];
+
+    <span class="cmt">// 2. поиск записи в HL-блоке</span>
+    <span class="tag">$hlEntity</span> = HighloadBlockTable::<span class="fn">getById</span>(HL_REFERRAL_ID);
+    <span class="tag">$existing</span> = <span class="tag">$hlEntity</span>::<span class="fn">getList</span>([
+        <span class="str">'filter'</span> => [<span class="str">'UF_USER_ID'</span> => <span class="tag">$userId</span>]
+    ])-><span class="fn">fetch</span>();
+
+    <span class="cmt">// 3. Add / Update</span>
+    <span class="tag">$fields</span> = [
+        <span class="str">'UF_USER_ID'</span>      => <span class="tag">$userId</span>,
+        <span class="str">'UF_REF_CODE'</span>     => <span class="tag">$data</span>[<span class="str">'REF_CODE'</span>],
+        <span class="str">'UF_STATUS'</span>       => <span class="tag">$data</span>[<span class="str">'STATUS'</span>],
+        <span class="str">'UF_BONUS_AMOUNT'</span> => <span class="tag">$data</span>[<span class="str">'BONUS_AMOUNT'</span>],
+        <span class="str">'UF_REFERRAL_URL'</span> => <span class="tag">$data</span>[<span class="str">'REFERRAL_URL'</span>],
+    ];
+    <span class="kw">if</span> (<span class="tag">$existing</span>) {
+        <span class="tag">$hlEntity</span>::<span class="fn">update</span>(<span class="tag">$existing</span>[<span class="str">'ID'</span>], <span class="tag">$fields</span>);
+    } <span class="kw">else</span> {
+        <span class="tag">$hlEntity</span>::<span class="fn">add</span>(<span class="tag">$fields</span>);
+    }
+    <span class="kw">return</span> [<span class="str">'success'</span> => <span class="str">'true'</span>];
+}</div>
+</div>
+
+<div class="section">
+<div class="section-label">Файлы</div>
+<div class="file-row"><span class="file-path">exchange/index.php</span><span class="pill pill-mod">MOD</span></div>
+<div class="file-row"><span class="file-path">local/php_interface/classes/Exchange.php</span><span class="pill pill-mod">MOD</span></div>
+</div>
+
+</div>
+</div>
+
+<div class="phase p3" id="ph4">
+<div class="phase-header" onclick="toggle('ph4')">
+  <span class="phase-num">Фаза 4</span>
+  <div>
+    <div class="phase-title">HL-блок ReferralProfile</div>
+    <div class="phase-sub">Создание новой сущности хранения на сайте</div>
+  </div>
+  <span class="chevron">▶</span>
+</div>
+<div class="phase-body">
+
+<div class="section">
+<div class="section-label">Создать HL-блок через админку или миграцию</div>
+<div class="task"><span class="dot d-teal"></span><span>Название таблицы: <code>b_hl_referral_profile</code>. Название объекта: <code>ReferralProfile</code>.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Поля HL-блока</div>
+<table class="summary-table">
+<tr><th>Поле</th><th>Тип</th><th>Назначение</th></tr>
+<tr><td><code>UF_USER_ID</code></td><td>integer</td><td>ID пользователя сайта (уникальный)</td></tr>
+<tr><td><code>UF_REF_CODE</code></td><td>string(32)</td><td>Реферальный код — ALFA-XXXXX</td></tr>
+<tr><td><code>UF_STATUS</code></td><td>string(16)</td><td>ACTIVE / INACTIVE / PENDING</td></tr>
+<tr><td><code>UF_BONUS_AMOUNT</code></td><td>decimal</td><td>Сумма бонуса к начислению (из 1С)</td></tr>
+<tr><td><code>UF_REFERRAL_URL</code></td><td>string(255)</td><td>Полная ссылка с utm/ref-параметром</td></tr>
+<tr><td><code>UF_DATE_CREATE</code></td><td>datetime</td><td>Дата генерации кода в 1С</td></tr>
+<tr><td><code>UF_REFERRAL_COUNT</code></td><td>integer</td><td>Кол-во привлечённых клиентов (из 1С)</td></tr>
+<tr><td><code>UF_DATE_UPDATE</code></td><td>datetime</td><td>Последнее обновление из CRM</td></tr>
+</table>
+<div class="note">UF_USER_ID — уникальный индекс. Один пользователь = одна запись. Все обновления идут через Update, не через дублирование.</div>
+</div>
+
+<div class="section">
+<div class="section-label">Константа в конфиге</div>
+<div class="code-block"><span class="cmt">// local/php_interface/init.php или constants.php</span>
+<span class="kw">define</span>(<span class="str">'HL_REFERRAL_ID'</span>, <span class="str">XX</span>); <span class="cmt">// ID HL-блока из БД после создания</span></div>
+</div>
+
+</div>
+</div>
+
+<div class="phase p2" id="ph5">
+<div class="phase-header" onclick="toggle('ph5')">
+  <span class="phase-num">Фаза 5</span>
+  <div>
+    <div class="phase-title">Личный кабинет — вывод REF_CODE</div>
+    <div class="phase-sub">Компонент и ajax для клиента</div>
+  </div>
+  <span class="chevron">▶</span>
+</div>
+<div class="phase-body">
+
+<div class="section">
+<div class="section-label">Что показывать в ЛК</div>
+<div class="task"><span class="dot d-purple"></span><span>Блок «Реферальная программа» в ЛК: REF_CODE, ссылка для приглашения, количество привлечённых клиентов, начисленные бонусы.</span></div>
+<div class="task"><span class="dot d-purple"></span><span>Статус программы: ACTIVE — показываем код; INACTIVE / PENDING — показываем заглушку «Код будет присвоен после...».</span></div>
+<div class="task"><span class="dot d-purple"></span><span>Кнопка «Скопировать ссылку» — копирует <code>UF_REFERRAL_URL</code> в буфер.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Ajax-файл</div>
+<div class="code-block"><span class="cmt">// lk_referral/ajax.php</span>
+<span class="kw">$userId</span> = <span class="tag">$USER</span>-><span class="fn">GetID</span>();
+<span class="kw">$hlEntity</span> = HighloadBlockTable::<span class="fn">getById</span>(HL_REFERRAL_ID);
+<span class="kw">$data</span> = <span class="tag">$hlEntity</span>::<span class="fn">getList</span>([
+    <span class="str">'filter'</span> => [<span class="str">'UF_USER_ID'</span> => <span class="kw">$userId</span>]
+])-><span class="fn">fetch</span>();
+
+<span class="kw">echo</span> json_encode([
+    <span class="str">'ref_code'</span>  => <span class="tag">$data</span>[<span class="str">'UF_REF_CODE'</span>],
+    <span class="str">'url'</span>       => <span class="tag">$data</span>[<span class="str">'UF_REFERRAL_URL'</span>],
+    <span class="str">'status'</span>    => <span class="tag">$data</span>[<span class="str">'UF_STATUS'</span>],
+    <span class="str">'bonus'</span>     => <span class="tag">$data</span>[<span class="str">'UF_BONUS_AMOUNT'</span>],
+    <span class="str">'count'</span>     => <span class="tag">$data</span>[<span class="str">'UF_REFERRAL_COUNT'</span>],
+]);</div>
+</div>
+
+<div class="section">
+<div class="section-label">Файлы</div>
+<div class="file-row"><span class="file-path">local/components/lk_referral/ajax.php</span><span class="pill pill-new">NEW</span></div>
+<div class="file-row"><span class="file-path">local/components/lk_referral/template.php</span><span class="pill pill-new">NEW</span></div>
+</div>
+
+</div>
+</div>
+
+<div class="phase p4" id="ph6">
+<div class="phase-header" onclick="toggle('ph6')">
+  <span class="phase-num">Фаза 6</span>
+  <div>
+    <div class="phase-title">Отслеживание перехода по реф-ссылке</div>
+    <div class="phase-sub">Запись REF_CODE при регистрации нового клиента</div>
+  </div>
+  <span class="chevron">▶</span>
+</div>
+<div class="phase-body">
+
+<div class="section">
+<div class="section-label">Сценарий</div>
+<div class="task"><span class="dot d-coral"></span><span>Новый клиент переходит по ссылке <code>alfasklad.ru/?ref=ALFA-XXXXX</code>. Сайт сохраняет GET-параметр <code>ref</code> в сессию / cookie.</span></div>
+<div class="task"><span class="dot d-coral"></span><span>При регистрации нового пользователя — обработчик <code>OnAfterUserRegister</code> считывает REF_CODE из сессии и записывает в доп. поле пользователя <code>UF_REFERRED_BY</code>.</span></div>
+<div class="task"><span class="dot d-coral"></span><span>Далее 1С при следующей синхронизации получает <code>UF_REFERRED_BY</code> через существующий REST-метод <code>enum.addDealFromSite</code> или отдельный вызов, и начисляет бонус рефереру.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Логика в init.php</div>
+<div class="code-block"><span class="cmt">// Сохраняем ref в сессию при заходе на сайт</span>
+AddEventHandler(<span class="str">'main'</span>, <span class="str">'OnPageStart'</span>, <span class="kw">function</span>() {
+    <span class="kw">if</span> (!<span class="kw">empty</span>(<span class="tag">$_GET</span>[<span class="str">'ref'</span>])) {
+        <span class="tag">$_SESSION</span>[<span class="str">'REF_CODE'</span>] = htmlspecialchars(<span class="tag">$_GET</span>[<span class="str">'ref'</span>]);
+    }
+});
+
+<span class="cmt">// Записываем при регистрации</span>
+AddEventHandler(<span class="str">'main'</span>, <span class="str">'OnAfterUserRegister'</span>, <span class="kw">function</span>(&<span class="tag">$arFields</span>) {
+    <span class="kw">if</span> (!<span class="kw">empty</span>(<span class="tag">$_SESSION</span>[<span class="str">'REF_CODE'</span>])) {
+        CUser::<span class="fn">SetUserField</span>(<span class="tag">$arFields</span>[<span class="str">'USER_ID'</span>], <span class="str">'UF_REFERRED_BY'</span>,
+            <span class="tag">$_SESSION</span>[<span class="str">'REF_CODE'</span>]);
+        <span class="kw">unset</span>(<span class="tag">$_SESSION</span>[<span class="str">'REF_CODE'</span>]);
+    }
+});</div>
+</div>
+
+<div class="section">
+<div class="section-label">Доп. поле пользователя</div>
+<div class="task"><span class="dot d-coral"></span><span>Создать пользовательское поле <code>UF_REFERRED_BY</code> типа <code>string</code> в сущности «Пользователи» — хранит REF_CODE того, кто привёл клиента.</span></div>
+</div>
+
+<div class="section">
+<div class="section-label">Файл</div>
+<div class="file-row"><span class="file-path">local/php_interface/init.php</span><span class="pill pill-mod">MOD</span></div>
+</div>
+
+</div>
+</div>
+
+<div class="phase p5" id="ph7">
+<div class="phase-header" onclick="toggle('ph7')">
+  <span class="phase-num">Фаза 7</span>
+  <div>
+    <div class="phase-title">Итоговый файловый реестр</div>
+    <div class="phase-sub">Что создаём, что правим</div>
+  </div>
+  <span class="chevron">▶</span>
+</div>
+<div class="phase-body">
+
+<div class="section">
+<table class="summary-table">
+<tr><th>Слой</th><th>Файл</th><th>Изменение</th></tr>
+<tr><td>CRM</td><td><code>classes/enum/HelperRest.php</code></td><td><span class="pill pill-mod">MOD</span> +addReferralFrom1C(), +updateReferralFrom1C()</td></tr>
+<tr><td>CRM</td><td><code>classes/enum/Rest.php</code></td><td><span class="pill pill-mod">MOD</span> +REST-методы в buildDescription, +OnAfterReferralAddHandler</td></tr>
+<tr><td>Сайт</td><td><code>exchange/index.php</code></td><td><span class="pill pill-mod">MOD</span> +case 'addReferral', +case 'deleteReferral'</td></tr>
+<tr><td>Сайт</td><td><code>classes/Exchange.php</code></td><td><span class="pill pill-mod">MOD</span> +AddReferral(), +DeleteReferral()</td></tr>
+<tr><td>Сайт</td><td><code>HL-блок ReferralProfile</code></td><td><span class="pill pill-new">NEW</span> b_hl_referral_profile, 8 полей</td></tr>
+<tr><td>Сайт</td><td><code>init.php</code></td><td><span class="pill pill-mod">MOD</span> +OnPageStart ref→session, +OnAfterUserRegister</td></tr>
+<tr><td>ЛК</td><td><code>lk_referral/ajax.php</code></td><td><span class="pill pill-new">NEW</span> отдаёт данные реферала текущего юзера</td></tr>
+<tr><td>ЛК</td><td><code>lk_referral/template.php</code></td><td><span class="pill pill-new">NEW</span> UI: код, ссылка, бонусы, статус</td></tr>
+<tr><td>1С</td><td>внешняя система</td><td>добавить вызовы enum.addReferralFrom1C / enum.updateReferralFrom1C</td></tr>
+</table>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+</script>

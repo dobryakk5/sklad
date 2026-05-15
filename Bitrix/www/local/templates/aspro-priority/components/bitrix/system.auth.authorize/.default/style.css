@@ -1,0 +1,13 @@
+@media(max-width: 480px) {
+	.auth_wrapp .form-body .forgot {
+		display: none;
+	}
+	.auth_wrapp .form-body .forgot_wrap {
+		display: block !important;
+		margin: 42px 0 -7px;
+	}
+	.auth_wrapp .form-body .forgot_wrap .forgot {
+		display: block !important;
+		margin: 0;
+	}
+}

@@ -1,0 +1,71 @@
+@media (min-width: 991px) {
+	.reviews-block {
+		padding-right: 40px;
+	}
+}
+@media (max-width: 991px) {
+	.reviews-block h4 {
+		margin-top: 30px !important;
+	}
+}
+
+
+.reviews-block .reviews-list .item {
+	margin-top: 40px;
+}
+.reviews-block .reviews-list .item .head {
+	display: flex;
+	align-items: center;
+}
+.reviews-block .reviews-list .item .head .image {
+	width: 50px;
+	height: 50px;
+	border-radius: 25px;
+	overflow: hidden;
+	margin-right: 15px;
+}
+.reviews-block .reviews-list .item .head .name {
+	color: #333;
+}
+.reviews-block .reviews-list .item .head .name:first-letter {
+	color: #ef5a54;
+}
+.reviews-block .reviews-list .item .rating-block {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+.reviews-block .reviews-list .item .rating-block .rating {
+	display: inline-block;
+	margin-bottom: -3px;
+}
+.reviews-block .reviews-list .item .rating-block .sklad {
+	display: inline-block;
+	margin-left: 15px;
+	color: #999;
+	font-size: 0.8em;
+}
+@media (max-width: 991px) {
+	.reviews-block .reviews-list .item .rating-block .sklad {
+		margin-left: 0;
+		display: block;
+	}
+}
+.reviews-block .reviews-list .item .rating-block .sklad a {
+	color: #999;
+}
+.reviews-block .reviews-list .item .message {
+	font-size: 13px;
+	line-height: 1.4em;
+	color: #333;
+}
+.reviews-block .reviews-list .item .date {
+	margin-top: 10px;
+	font-size: 12px;
+	color: #999;
+	text-transform: lowercase;
+}
+
+.reviews-block .pagination-block {
+	text-align: center;
+	margin-top: 30px;
+}

@@ -1,0 +1,173 @@
+:root {
+  --color-red: #EF5A54;
+  --color-red-80: #EF5A54CC;
+  --color-red-30: #EF5A544D;
+  --color-red-10: #EF5A541A;
+  --color-black: #08091A;
+  --color-white: #FFFFFF;
+  --color-grey-dark: #3B3C49;
+  --color-grey-medium: #81818A;
+  --color-grey-white: #E7E7E9;
+  --color-grey-light: #CDCDD0;
+  --color-grey-light-10: #CDCDD01A;
+  --color-grey-light-30: #CDCDD04D;
+
+  --base-container: 1344px;
+
+  --border-width-xs: 1px;
+  --border-solid-type: solid;
+  --border-dashed-type: dashed;
+  --border-red: var(--border-width-xs) var(--border-solid-type) var(--color-red);
+  --border-red-80: var(--border-width-xs) var(--border-solid-type) var(--color-red-80);
+  --border-red-30: var(--border-width-xs) var(--border-solid-type) var(--color-red-30);
+  --border-grey-white: var(--border-width-xs) var(--border-solid-type) var(--color-grey-white);
+  --border-grey-light: var(--border-width-xs) var(--border-solid-type) var(--color-grey-light);
+  --border-black-dashed: var(--border-width-xs) var(--border-dashed-type) var(--color-black);
+
+  --border-radius-xs: 3px;
+  --border-radius-s: 4px;
+  --border-radius-m: 8px;
+
+  --spacing-x1: 2px;
+  --spacing-x2: 4px;
+  --spacing-x3: 6px;
+  --spacing-x4: 8px;
+  --spacing-x5: 10px;
+  --spacing-x6: 12px;
+  --spacing-x7: 14px;
+  --spacing-x8: 16px;
+  --spacing-x9: 18px;
+  --spacing-x10: 20px;
+  --spacing-x11: 22px;
+  --spacing-x12: 24px;
+  --spacing-x13: 26px;
+  --spacing-x14: 28px;
+  --spacing-x15: 30px;
+  --spacing-x16: 32px;
+  --spacing-x17: 34px;
+  --spacing-x18: 36px;
+  --spacing-x19: 38px;
+  --spacing-x20: 40px;
+  --spacing-x21: 42px;
+  --spacing-x22: 44px;
+  --spacing-x23: 46px;
+  --spacing-x24: 48px;
+  --spacing-x25: 50px;
+  --spacing-x26: 52px;
+  --spacing-x30: 60px;
+  --spacing-x31: 62px;
+  --spacing-x32: 64px;
+
+  --font-size-menu: 14px;
+  --font-size-cta: 14px;
+  --font-size-xxs: 10px;
+  --font-size-xs: 12px;
+  --font-size-s: 14px;
+  --font-size-m: 16px;
+  --font-size-l: 18px;
+  --font-size-xl: 20px;
+  --font-size-xxl: 22px;
+  --font-size-xxxl: 24px; 
+
+  --line-height-menu: 18px;
+  --line-height-cta: 18px;
+  --line-height-xxs: 12px;
+  --line-height-xs: 16px;
+  --line-height-s: 18px;
+  --line-height-m: 20px;
+  --line-height-l: 22px;
+  --line-height-xl: 24px;
+  --line-height-xxl: 28px;
+  --line-height-xxxl: 30px;
+
+  --paragraph-spasing-xxs: 2px;
+  --paragraph-spasing-xs: 4px;
+  --paragraph-spasing-s: 6px;
+  --paragraph-spasing-m: 8px;
+  --paragraph-spasing-l: 10px;
+  --paragraph-spasing-xl: 12px;
+  --paragraph-spasing-xxl: 14px;
+  --paragraph-spasing-xxxl: 16px;
+
+  --letter-spacing-cta: 0.8px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-accent: 700;
+
+  --box-shadow-main: 0px 0px 10px 0px rgba(8, 9, 26, 0.25);
+
+  --media-tablet: 1280px;
+  --media-mobile: 640px;
+
+  --default-transition-duration-l: .4s;
+  --default-transition-duration-m: .3s;
+  --default-transition-duration-s: .2s;
+  --default-transition-duration-xs: .1s;
+  
+  --default-transition-easing: ease-in;
+
+  --default-transition-l-ease-in: var(--default-transition-duration-l) var(--default-transition-easing);
+  --default-transition-m-ease-in: var(--default-transition-duration-m) var(--default-transition-easing);
+  --default-transition-s-ease-in: var(--default-transition-duration-s) var(--default-transition-easing);
+  --default-transition-xs-ease-in: var(--default-transition-duration-xs) var(--default-transition-easing);
+
+  --inner-side-space: 12px;
+
+  --z-base: 0;
+  --z-content: 1;
+  --z-above-content: 10;
+
+  --z-navigation: 100;
+  --z-dropdown: 200;
+  --z-megamenu: 250;
+
+  --z-overlay: 1000;
+  --z-modal: 1100;
+  --z-popup: 1200;
+
+  --z-notification: 1300;
+  --z-tooltip: 1400;
+  --z-toast: 1500;
+
+  --z-loading: 9998;
+  --z-debug: 9999;
+}
+
+@media screen and (max-width: 931px) {
+  :root {
+    --inner-side-space: 24px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  :root {
+    --font-size-cta: 12px;
+    --font-size-xs: 10px;
+    --font-size-s: 12px;
+    --font-size-m: 14px;
+    --font-size-l: 16px;
+    --font-size-xl: 18px;
+    --font-size-xxl: 20px;
+    --font-size-xxxl: 22px;
+
+    --line-height-cta: 16px;
+    --line-height-xs: 14px;
+    --line-height-s: 16px;
+    --line-height-m: 18px;
+    --line-height-l: 20px;
+    --line-height-xl: 22px;
+    --line-height-xxl: 24px;
+    --line-height-xxxl: 28px;
+
+    --paragraph-spasing-xs: 2px;
+    --paragraph-spasing-s: 4px;
+    --paragraph-spasing-m: 6px;
+    --paragraph-spasing-l: 8px;
+    --paragraph-spasing-xl: 10px;
+    --paragraph-spasing-xxl: 12px;
+    --paragraph-spasing-xxxl: 14px;
+
+    --inner-side-space: 8px;
+  }
+}

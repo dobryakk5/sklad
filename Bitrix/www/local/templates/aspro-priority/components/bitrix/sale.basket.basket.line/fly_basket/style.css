@@ -1,0 +1,37 @@
+.basket.fly .basketSmall {
+    padding: 0;
+    display: block;
+    position: relative;
+    width: 68px;
+    height: 68px;
+    cursor: pointer;
+	color: #ef5a54;
+}
+.basket.fly .basketSmall .svg-basket {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -4px 0 0 -15px;
+    width: 19px;
+    height: 18px;
+    opacity: .5;
+    background: 0 0;
+}
+.basket.fly .basketSmall .svg-basket path {
+    fill: #333;
+}
+.basket.fly .basketSmall .count {
+    position: absolute;
+    left: 50%;
+    top: 40px;
+    margin: -19px 0 0 -3px;
+    width: 18px;
+    height: 17px;
+    line-height: 17px;
+    white-space: nowrap;
+    font-size: 12px;
+    color: #fff;
+    border-radius: 100%;
+    text-align: center;
+	background: #ef5a54;
+}

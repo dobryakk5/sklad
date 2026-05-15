@@ -1,0 +1,207 @@
+.card-room__plan {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-room__plan-text {
+  position: absolute;
+  white-space: nowrap;
+  min-width: 30px;
+  font-size: var(--font-size-xxs);
+  line-height: var(--line-height-xxs);
+  font-weight: var(--font-weight-accent);
+}
+
+.card-room__plan-width {
+  bottom: 0;
+  transform: translateY(130%);
+}
+
+.card-room__plan-height {
+  right: 0;
+  transform: translateX(120%);
+}
+
+.card-room__plan_cell .card-room__plan-width {
+  left: 12px;
+}
+
+.card-room__plan_cell .card-room__plan-height {
+  top: 16px;
+}
+
+.card-room__plan_cell .card-room__plan-depth {
+  right: -20px;
+  bottom: -5px;
+}
+
+.card-room_box-XS .card-room__plan-width {
+  left: 12.5px;
+}
+
+.card-room_box-XS .card-room__plan-height {
+  top: 52px;
+}
+
+.card-room_box-XS .card-room__plan-depth {
+  right: -22px;
+  bottom: -7px;
+}
+
+.card-room_box-S-long .card-room__plan-width {
+  left: 10px;
+}
+
+.card-room_box-S-long .card-room__plan-height {
+  top: 47px;
+}
+
+.card-room_box-S-long .card-room__plan-depth {
+  right: -12px;
+  bottom: -2.5px;
+}
+
+.card-room_box-S-square .card-room__plan-width {
+  left: 17px;
+}
+
+.card-room_box-S-square .card-room__plan-height {
+  top: 49px;
+}
+
+.card-room_box-S-square .card-room__plan-depth {
+  right: -15px;
+  bottom: -5px;
+}
+
+.card-room_box-S-wide .card-room__plan-width {
+  left: 25px;
+}
+
+.card-room_box-S-wide .card-room__plan-height {
+  top: 48px;
+}
+
+.card-room_box-S-wide .card-room__plan-depth {
+  right: -23px;
+  bottom: -9px;
+}
+
+.card-room_box-M-long .card-room__plan-width {
+  left: 19px;
+}
+
+.card-room_box-M-long .card-room__plan-height {
+  top: 46px;
+}
+
+.card-room_box-M-long .card-room__plan-depth {
+  right: -1px;
+  bottom: 5px;
+}
+
+.card-room_box-M-square .card-room__plan-width {
+  left: 31px;
+}
+
+.card-room_box-M-square .card-room__plan-height {
+  top: 47px;
+}
+
+.card-room_box-M-square .card-room__plan-depth {
+  right: -12px;
+  bottom: -1px;
+}
+
+.card-room_box-M-wide .card-room__plan-width {
+  left: 45px;
+}
+
+.card-room_box-M-wide .card-room__plan-height {
+  top: 47px;
+}
+
+.card-room_box-M-wide .card-room__plan-depth {
+  right: -17px;
+  bottom: -3px;
+}
+
+.card-room_box-L-long .card-room__plan-width {
+  left: 42px;
+}
+
+.card-room_box-L-long .card-room__plan-height {
+  top: 47px;
+}
+
+.card-room_box-L-long .card-room__plan-depth {
+  right: 0px;
+  bottom: 11px;
+}
+
+.card-room_box-L-square .card-room__plan-width {
+  left: 52px;
+}
+
+.card-room_box-L-square .card-room__plan-height {
+  top: 45px;
+}
+
+.card-room_box-L-square .card-room__plan-depth {
+  right: -2px;
+  bottom: 7px;
+}
+
+.card-room_box-L-wide .card-room__plan-width {
+  left: 60px;
+}
+
+.card-room_box-L-wide .card-room__plan-height {
+  top: 49px
+}
+
+.card-room_box-L-wide .card-room__plan-depth {
+  right: -10px;
+  bottom: 2px;
+}
+
+.card-room_container-XS-long .card-room__plan-width {
+  left: 15px;
+}
+
+.card-room_container-XS-long .card-room__plan-height {
+  top: 35px
+}
+
+.card-room_container-XS-long .card-room__plan-depth {
+  right: -10px;
+  bottom: 0px;
+}
+
+.card-room_container-S-square .card-room__plan-width {
+  left: 32px;
+}
+
+.card-room_container-S-square .card-room__plan-height {
+  top: 38px
+}
+
+.card-room_container-S-square .card-room__plan-depth {
+  right: -13px;
+  bottom: 1px;
+}
+
+.card-room_container-M-long .card-room__plan-width {
+  left: 32px;
+}
+
+.card-room_container-M-long .card-room__plan-height {
+  top: 35px
+}
+
+.card-room_container-M-long .card-room__plan-depth {
+  right: -2px;
+  bottom: 8px;
+}

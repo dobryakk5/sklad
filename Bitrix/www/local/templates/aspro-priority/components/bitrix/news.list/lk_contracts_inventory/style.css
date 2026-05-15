@@ -1,0 +1,90 @@
+.lk_table table.table {
+    margin-top: 0;
+	margin-bottom: 0;
+}
+.lk_table table.table tr th,
+.lk_table table.table tr td {
+    text-align: left;
+    vertical-align: middle;
+	padding: 10px;
+}
+.lk_table table.table tr th {
+    background-color: #fff;
+    color: #333;
+    /*font-weight: 500;*/
+    /*border-bottom: 2px solid #f1f1f1;*/
+    font-size: 1em;
+}
+.lk_table table.table tr:hover {
+    background: none;
+}
+.lk_table table.table tr:hover td:first-of-type {
+    padding-left: 10px !important; 
+    border-left: none !important;
+}
+.lk_table table.table tr:hover td:last-of-type {
+    padding-right: 10px !important; 
+    border-right: none !important;
+}
+.lk_table table.table tr td .icon {
+    margin-bottom: 5px;
+}
+.lk_table table.table tr:last-of-type td {
+    border-bottom: none;
+}
+@media(max-width: 767px) {
+    .lk_table table.table tr {
+        border-bottom: 1px solid #ef5a54;
+    }
+}
+.lk_table table.table tr td .invoice_link a {
+    text-transform: lowercase;
+}
+
+
+img.preview {max-width:200px;}
+
+
+
+.inventory .text-block textarea {
+	width: 100%;
+	min-height: 300px;
+	border: 1px solid #eff1f5;
+	padding: 15px;
+	overflow-y: scroll !important;
+}
+.inventory .pic-block {
+	margin-top: 40px;
+	margin-bottom: 40px;
+}
+.inventory .pic-block .picture {
+	margin-bottom: 30px;
+}
+.inventory .pic-block .picture img {
+	width: 100%;
+}
+
+.inventory .load-file-block {
+	padding-top: 10px;
+}
+.inventory .load-file-block .default_field {
+	display: none;
+}
+.inventory .load-file-block .load-item {
+	margin-bottom: 8px;
+}
+.inventory .load-file-block .load-item input[type="file"] {
+	display: none;
+}
+.inventory .load-file-block .load-item .status {
+	display: inline-block;
+	margin-left: 20px;
+}
+.inventory .load-file-block .add-field-block a {
+	color: #999;
+	cursor: pointer;
+}
+
+.inventory .save-block {
+	margin-top: 40px;
+}

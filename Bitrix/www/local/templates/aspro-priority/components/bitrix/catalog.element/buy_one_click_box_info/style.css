@@ -1,0 +1,8 @@
+.box_added_to_cart {
+	padding: 0;
+	margin-bottom: 20px;
+}
+.box_added_to_cart .items .item {
+    border-top: none;
+    border-bottom: none;
+}

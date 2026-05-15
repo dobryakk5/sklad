@@ -8,6 +8,9 @@ use App\Repositories\Cached\CachedBoxRepository;
 use App\Repositories\Cached\CachedWarehouseRepository;
 use App\Repositories\Contracts\BoxRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
+use App\Services\Sms\LogSmsProvider;
+use App\Services\Sms\SmsProviderInterface;
+use App\Services\Sms\SmscProvider;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,6 +37,13 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(BitrixBoxRepository::class)
             ),
         );
+
+        $this->app->bind(SmsProviderInterface::class, function () {
+            return match ((string) config('debt-payments.sms_provider', 'log')) {
+                'smsc' => new SmscProvider(),
+                default => new LogSmsProvider(),
+            };
+        });
     }
 
     public function boot(): void {}

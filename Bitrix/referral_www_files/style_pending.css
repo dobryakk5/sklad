@@ -1,0 +1,39 @@
+/* ── Блок "код не присвоен" (статус PENDING / INACTIVE) ── */
+.lk-referral-pending-card {
+    border-left: 4px solid #f5a623;
+    background: #fffbf2;
+}
+
+.lk-referral-pending-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.lk-referral-pending-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    color: #f5a623;
+}
+
+.lk-referral-pending-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.lk-referral-pending-card h2 {
+    margin-bottom: 8px;
+    font-size: 20px;
+}
+
+.lk-referral-pending-card p {
+    font-size: 15px;
+    color: #555b6a;
+    line-height: 1.6;
+}

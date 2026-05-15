@@ -1,0 +1,156 @@
+.mainpage_price_storages {}
+.mainpage_price_storages .link_title {
+	margin-bottom: 10px;
+}
+.mainpage_price_storages .second_title {
+	font-size: 1.2em;
+	color: #333;
+	margin-bottom: 10px;
+}
+.mainpage_price_storages .size_block {
+	margin-bottom: 20px;
+}
+.mainpage_price_storages .size_block .sizes {
+	margin: 10px 0;
+}
+.mainpage_price_storages .size_block .sizes .size_button {
+	display: inline-block;
+	margin-right: 10px;
+	border: 1px solid #e8e8e8;
+	font-weight: 500;
+	border-radius: 5px;
+	padding: 8px 12px 8px 15px;
+	color: #333;
+	cursor: pointer;
+	width: 85px;
+	text-align: center;
+}
+.mainpage_price_storages .size_block .sizes .size_button.active {
+	color: #ef5a54;
+	box-shadow: 0 0 7px 0 #e8e8e8;
+}
+@media(max-width: 991px) {
+	.mainpage_price_storages .size_block .sizes .size_button {
+		margin-bottom: 10px;
+	}
+}
+
+.mainpage_price_storages .sklad_list .sklad {
+	border: 1px solid #eff1f5;
+	border-radius: 5px;
+	box-shadow: -2px -2px 5px -2px #e8e8e8;
+	padding: 15px;
+	margin-bottom: 15px;
+}
+.mainpage_price_storages .sklad_list .sklad:last-child {
+	margin-bottom: 0;
+}
+.mainpage_price_storages .sklad_list .sklad .header {
+	clear: both;
+	position: relative;
+}	
+.mainpage_price_storages .sklad_list .sklad .header .info {
+	padding-right: 90px;
+}
+.mainpage_price_storages .sklad_list .sklad .header .name {
+	font-weight: 500;
+	color: #333;
+	font-size: 1.1em;
+}
+.mainpage_price_storages .sklad_list .sklad .header .address {
+	font-size: 0.8em;
+}		
+.mainpage_price_storages .sklad_list .sklad .header .closeopen {
+	position: absolute;
+	right: 0;
+	top: 0;
+	color: #ef5a54;
+	font-size: 0.85em;
+	cursor: pointer;
+}
+@media(max-width: 991px) {
+	.mainpage_price_storages .sklad_list .sklad .header .info {
+		padding-right: 0;
+		text-align: center;
+	}	
+	.mainpage_price_storages .sklad_list .sklad .header .closeopen {
+		position: relative;
+		margin: 10px 0;
+		text-align: center;
+	}
+}	
+
+
+.mainpage_price_storages .sklad_list .sklad .content {
+	display: none;
+}
+.mainpage_price_storages .sklad_list .sklad:nth-child(1) .content,
+.mainpage_price_storages .sklad_list .sklad:nth-child(2) .content {
+	display: block;
+}
+.mainpage_price_storages .sklad_list .sklad:nth-child(1) .content.close_all,
+.mainpage_price_storages .sklad_list .sklad:nth-child(2) .content.close_all {
+    display: none;
+}
+
+.mainpage_price_storages .sklad_list .sklad .content .link_sklad {
+	font-size: 0.8em;
+}	
+.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data {
+	width: 100%;
+	font-size: 0.9em;
+	margin-top: 10px;
+	color: #333;
+}
+.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td {
+	height: 40px;
+	border-top: 1px solid #eff1f5;
+}	
+.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.status {
+	padding-left: 20px;
+}
+.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.price {
+	padding-left: 20px;
+}
+.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.price span {
+	font-weight: 500;
+}	
+.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.button {
+	width: 190px;
+	text-align: right;
+}
+.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.button .btn {
+	width: 100%;
+}
+@media(max-width: 991px) {
+	.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td {
+		display: block;
+		height: auto;
+		text-align: center;
+		border-top: none;
+	}
+	.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td:first-child {
+		border-top: 1px solid #eff1f5;
+		padding-top: 10px;
+	}
+	.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td:last-child {
+		margin-bottom: 15px;
+	}		
+	.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.status {
+		padding-left: 0;
+	}
+	.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.price {
+		padding-left: 0;
+	}	
+	.mainpage_price_storages .sklad_list .sklad .content .rental_catalog_data tr td.button {
+		width: auto;
+		text-align: center;
+	}		
+}	
+
+.mainpage_price_storages ul.list {
+	margin: 15px 0;
+}
+.mainpage_price_storages ul.list li {
+	margin-top: 0;
+}

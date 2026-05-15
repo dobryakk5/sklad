@@ -1,0 +1,66 @@
+.lk_table table.table {
+    margin-top: 0;
+	margin-bottom: 0;
+	border-radius: 0;
+	margin-bottom: 60px;
+}
+.lk_table table.table tr th,
+.lk_table table.table tr td {
+    text-align: left;
+    vertical-align: middle;
+	padding: 10px;
+}
+.lk_table table.table tr th {
+    background-color: #fff;
+    color: #333;
+    /*font-weight: 500;*/
+    /*border-bottom: 2px solid #f1f1f1;*/
+    font-size: 1em;
+}
+.lk_table table.table tr:hover {
+    background: none;
+}
+.lk_table table.table tr:hover td:first-of-type {
+    padding-left: 10px !important; 
+    border-left: none !important;
+}
+.lk_table table.table tr:hover td:last-of-type {
+    padding-right: 10px !important; 
+    border-right: none !important;
+}
+.lk_table table.table tr td .icon {
+    margin-bottom: 5px;
+}
+.lk_table table.table tr:last-of-type td {
+    border-bottom: none;
+}
+@media(max-width: 767px) {
+    .lk_table table.table tr {
+        border-bottom: 1px solid #ef5a54;
+    }
+}
+.lk_table table.table tr td .invoice_link a {
+    text-transform: lowercase;
+}
+
+.lk_table table.table tr th {
+    background-color: #ef5a54;
+	color: #ffffff;
+}
+.lk_table table.table tr td:nth-child(1) {
+    width: 40%;
+}
+
+@media(max-width: 767px) {
+	.lk_table table.table thead {
+		display: block;
+	}
+}
+.lk_table table.table thead + tbody td .th-mobile {
+    display: none !important;
+}
+
+.lk_table table.table thead th .delete {
+	float: right;
+	cursor: pointer;
+}

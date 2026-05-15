@@ -1,0 +1,599 @@
+.referral-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 0 56px;
+    color: #202124;
+}
+
+.referral-page * {
+    box-sizing: border-box;
+}
+
+.referral-page h1,
+.referral-page h2,
+.referral-page p {
+    margin: 0;
+}
+
+.referral-page h2 {
+    margin-bottom: 18px;
+    font-size: 26px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: #191b20;
+}
+
+.referral-hero {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    background: linear-gradient(90deg, #fff7f7 0%, #fff 50%, #f4f4f4 100%);
+    overflow: hidden;
+}
+
+.referral-hero-inner {
+    max-width: 1440px;
+    min-height: 520px;
+    margin: 0 auto;
+    padding: 44px 70px 48px;
+    display: grid;
+    grid-template-columns: minmax(500px, 0.92fr) minmax(700px, 1.08fr);
+    gap: 28px;
+    position: relative;
+    align-items: center;
+}
+
+.referral-hero-content {
+    position: relative;
+    z-index: 5;
+    padding-right: 8px;
+}
+
+.referral-eyebrow {
+    margin-bottom: 18px;
+    font-size: 18px;
+    color: #343842;
+}
+
+.referral-hero h1 {
+    max-width: 620px;
+    margin-bottom: 22px;
+    font-size: 46px;
+    line-height: 1.12;
+    font-weight: 800;
+    color: #202124;
+}
+
+.referral-hero h1 span {
+    display: block;
+    color: #e30613;
+}
+
+.referral-hero-text {
+    max-width: 620px;
+    margin-bottom: 56px;
+    font-size: 18px;
+    line-height: 1.45;
+    color: #343842;
+}
+
+.referral-hero-text strong {
+    color: #202124;
+    font-weight: 800;
+}
+
+.referral-hero-benefits {
+    margin-bottom: 34px;
+    display: grid;
+    grid-template-columns: 170px 210px 1fr;
+    gap: 22px;
+    align-items: start;
+}
+
+.referral-hero-benefit {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 10px;
+    align-items: start;
+}
+
+.referral-icon,
+.referral-card-icon,
+.referral-step-icon {
+    color: #ed1c24;
+}
+
+.referral-icon {
+    width: 44px;
+    height: 44px;
+    border: 2px solid #ed1c24;
+    border-radius: 50%;
+    padding: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.referral-icon svg,
+.referral-card-icon svg,
+.referral-step-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.referral-hero-benefit strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+    line-height: 1.25;
+    color: #343842;
+}
+
+.referral-hero-benefit b {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 16px;
+    color: #e30613;
+}
+
+.referral-hero-benefit span {
+    display: block;
+    font-size: 13px;
+    line-height: 1.25;
+    color: #343842;
+}
+
+.referral-main-btn {
+    min-width: 260px;
+    min-height: 58px;
+    padding: 18px 28px !important;
+    border-radius: 6px !important;
+    background: #e30613 !important;
+    border-color: #e30613 !important;
+    color: #fff !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    text-align: center;
+}
+
+.referral-hero-visual {
+    position: relative;
+    min-height: 440px;
+    z-index: 2;
+}
+
+/* Картинка справа */
+.referral-photo-card {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 128px;
+    overflow: hidden;
+    background: #f4f4f4;
+    z-index: 1;
+}
+
+/* Молния стоит между текстом и картинкой, 
+   а ее верх и низ совпадают с верхом/низом картинки */
+.referral-lightning-svg {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    bottom: 0;
+    left: 28px;
+    width: 175px;
+    height: 100%;
+    filter: drop-shadow(0 8px 20px rgba(227, 6, 19, 0.22));
+    overflow: visible;
+    pointer-events: none;
+}
+
+.referral-photo-card:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.04) 100%);
+    pointer-events: none;
+}
+
+.referral-hero-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center center;
+}
+
+.referral-section {
+    padding: 34px 70px 0;
+}
+
+.referral-bonus-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.referral-bonus-card,
+.referral-step,
+.referral-share-card,
+.referral-info-note,
+.referral-faq-item {
+    background: #fff;
+    border: 1px solid #e6e8ec;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(20,20,20,.025);
+}
+
+.referral-bonus-card {
+    min-height: 116px;
+    padding: 20px 22px;
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 18px;
+    align-items: center;
+}
+
+.referral-card-icon {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+}
+
+.referral-bonus-card strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 17px;
+    color: #202124;
+}
+
+.referral-bonus-card span:not(.referral-card-icon) {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #343842;
+}
+
+.referral-bonus-card b {
+    display: block;
+    font-size: 25px;
+    line-height: 1;
+    color: #e30613;
+}
+
+.referral-info-note {
+    margin-top: 16px;
+    padding: 14px 22px;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    align-items: start;
+    background: #fafafa;
+}
+
+.referral-info-note > span {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eee;
+    color: #777;
+    font-weight: 800;
+    font-style: normal;
+}
+
+.referral-info-note p {
+    font-size: 14px;
+    line-height: 1.45;
+    color: #343842;
+}
+
+.referral-info-note strong {
+    color: #202124;
+}
+
+.referral-steps {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr 40px 1fr;
+    gap: 14px;
+    align-items: center;
+}
+
+.referral-step {
+    min-height: 116px;
+    padding: 20px 22px;
+    display: grid;
+    grid-template-columns: 66px 1fr;
+    gap: 18px;
+    align-items: center;
+    position: relative;
+}
+
+.referral-step-number {
+    position: absolute;
+    left: 16px;
+    top: -12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e30613;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.referral-step-icon {
+    width: 64px;
+    height: 64px;
+    padding: 16px;
+    border-radius: 50%;
+    background: #fff1f1;
+    display: inline-flex;
+}
+
+.referral-step strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 16px;
+    color: #202124;
+}
+
+.referral-step p {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #343842;
+}
+
+.referral-step-arrow {
+    font-size: 34px;
+    line-height: 1;
+    color: #e30613;
+    text-align: center;
+}
+
+.referral-share-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+.referral-share-card {
+    min-height: 128px;
+    padding: 18px 14px;
+    text-align: center;
+}
+
+.referral-share-card .referral-card-icon {
+    margin: 0 auto 12px;
+    width: 36px;
+    height: 36px;
+}
+
+.referral-share-card strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    line-height: 1.25;
+    color: #202124;
+}
+
+.referral-share-card p {
+    font-size: 12px;
+    line-height: 1.3;
+    color: #343842;
+}
+
+.referral-faq-section {
+    padding-bottom: 24px;
+}
+
+.referral-faq {
+    display: grid;
+    gap: 0;
+}
+
+.referral-faq-item {
+    width: 100%;
+    min-height: 52px;
+    padding: 0;
+    border-radius: 0;
+    border-bottom: none;
+    display: grid;
+    grid-template-columns: 360px 1fr 28px;
+    align-items: center;
+    gap: 20px;
+    text-align: left;
+    cursor: pointer;
+    background: #fff;
+}
+
+.referral-faq-item:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.referral-faq-item:last-child {
+    border-radius: 0 0 8px 8px;
+    border-bottom: 1px solid #e6e8ec;
+}
+
+.referral-faq-item span {
+    padding-left: 24px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #202124;
+}
+
+.referral-faq-item p {
+    font-size: 14px;
+    line-height: 1.35;
+    color: #343842;
+}
+
+.referral-faq-item i {
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid #e30613;
+    border-bottom: 2px solid #e30613;
+    transform: rotate(45deg);
+}
+
+/* Desktop: опускаем иконки и кнопку ниже */
+@media (min-width: 1200px) {
+    .referral-hero-content {
+        display: flex;
+        flex-direction: column;
+        align-self: stretch;
+    }
+
+    .referral-hero-text {
+        margin-bottom: 0;
+    }
+
+    .referral-hero-benefits {
+        margin-top: auto;
+        margin-bottom: 34px;
+    }
+}
+
+@media (max-width: 1399px) {
+    .referral-hero-inner {
+        max-width: 1280px;
+        min-height: 485px;
+        grid-template-columns: minmax(500px, 1fr) 640px;
+        gap: 28px;
+    }
+
+    .referral-hero-visual {
+        min-height: 400px;
+    }
+
+    .referral-photo-card {
+        left: 116px;
+    }
+
+    .referral-lightning-svg {
+        left: 22px;
+        width: 165px;
+    }
+}
+
+@media (max-width: 1199px) {
+    .referral-hero-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .referral-hero-visual {
+        display: none;
+    }
+
+    .referral-hero-benefits {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .referral-bonus-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .referral-share-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .referral-faq-item {
+        grid-template-columns: 280px 1fr 28px;
+    }
+}
+
+@media (max-width: 991px) {
+    .referral-hero-inner,
+    .referral-section {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .referral-hero h1 {
+        font-size: 38px;
+    }
+
+    .referral-hero-text {
+        margin-bottom: 36px;
+    }
+
+    .referral-hero-benefits {
+        grid-template-columns: 1fr;
+    }
+
+    .referral-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .referral-step-arrow {
+        transform: rotate(90deg);
+    }
+
+    .referral-faq-item {
+        grid-template-columns: 1fr 28px;
+        padding: 16px 18px;
+    }
+
+    .referral-faq-item span {
+        padding-left: 0;
+    }
+
+    .referral-faq-item p {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 767px) {
+    .referral-hero-inner {
+        min-height: auto;
+        padding-top: 32px;
+        padding-bottom: 36px;
+    }
+
+    .referral-hero h1 {
+        font-size: 31px;
+    }
+
+    .referral-hero-text {
+        margin-bottom: 30px;
+        font-size: 16px;
+    }
+
+    .referral-hero-text strong {
+        margin-left: 6px;
+        padding-left: 2px;
+        white-space: normal;
+    }
+
+    .referral-main-btn {
+        width: 100%;
+    }
+
+    .referral-bonus-grid,
+    .referral-share-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .referral-bonus-card {
+        min-height: auto;
+    }
+
+    .referral-page h2 {
+        font-size: 23px;
+    }
+    .print-link {
+        display: none !important;
+    }
+}

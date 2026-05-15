@@ -40,4 +40,8 @@ return [
         'secret' => env('BITRIX_API_SECRET', env('CABINET_SERVICE_SECRET')),
     ],
 
+    'bitrix' => [
+        'internal_secret' => env('BITRIX_INTERNAL_SECRET'),
+    ],
+
 ];

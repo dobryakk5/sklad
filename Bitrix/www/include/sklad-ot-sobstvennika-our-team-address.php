@@ -1,0 +1,1 @@
+<a href="#" data-event="jqm" data-param-id="map" data-name="map" data-param-type="map" data-iblock_id="29" data-map_button="Y">Показать склады на карте</a>

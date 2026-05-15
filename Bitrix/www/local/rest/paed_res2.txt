@@ -1,0 +1,90 @@
+2024-06-04T16:40:02+03:00
+Array
+(
+    [0] => Array
+        (
+            [ID] => 19226
+            [DATA] => Array
+                (
+                    [Invoice] => 129089
+                    [PaymentPlace] => Site
+                    [Amount] => 3250
+                    [PaymentDate] => 04.06.2024 15:48:44
+                    [IdClient] => 6475
+                    [PaymentNumber] => 66538
+                    [GUID_Invoice] => 296803
+                    [IdContract] => 12514
+                )
+
+        )
+
+    [1] => Array
+        (
+            [ID] => 19227
+            [DATA] => Array
+                (
+                    [Invoice] => 129235
+                    [PaymentPlace] => Site
+                    [Amount] => 300
+                    [PaymentDate] => 04.06.2024 16:18:08
+                    [IdClient] => 6251
+                    [PaymentNumber] => 66540
+                    [GUID_Invoice] => 0
+                    [IdContract] => 0
+                )
+
+        )
+
+    [2] => Array
+        (
+            [ID] => 19228
+            [DATA] => Array
+                (
+                    [Invoice] => 129242
+                    [PaymentPlace] => Site
+                    [Amount] => 13500
+                    [PaymentDate] => 04.06.2024 16:37:31
+                    [IdClient] => 19548
+                    [PaymentNumber] => 66541
+                    [GUID_Invoice] => 204996
+                    [IdContract] => 43498
+                )
+
+        )
+
+    [3] => Array
+        (
+            [ID] => 19229
+            [DATA] => Array
+                (
+                    [Invoice] => 129243
+                    [PaymentPlace] => Site
+                    [Amount] => 14031
+                    [PaymentDate] => 04.06.2024 16:38:26
+                    [IdClient] => 19548
+                    [PaymentNumber] => 66542
+                    [GUID_Invoice] => 204995
+                    [IdContract] => 43498
+                )
+
+        )
+
+    [4] => Array
+        (
+            [ID] => 19230
+            [DATA] => Array
+                (
+                    [Invoice] => 129244
+                    [PaymentPlace] => Site
+                    [Amount] => 3250
+                    [PaymentDate] => 04.06.2024 16:39:32
+                    [IdClient] => 5868
+                    [PaymentNumber] => 66543
+                    [GUID_Invoice] => 0
+                    [IdContract] => 0
+                )
+
+        )
+
+)
+

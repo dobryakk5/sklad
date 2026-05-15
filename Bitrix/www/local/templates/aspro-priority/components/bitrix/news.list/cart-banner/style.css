@@ -1,0 +1,10 @@
+.cart-banner {
+	position: relative;
+	margin-top: 40px;
+}
+.cart-banner a {
+	display: block;
+}
+.cart-banner img {
+	width: 100%;
+}

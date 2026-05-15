@@ -1,0 +1,229 @@
+.hero-block__title {
+  margin: 0;
+  margin-bottom: var(--spacing-x6);
+}
+
+.hero-block__text + .hero-block__text {
+  margin-top: var(--spacing-x4);
+} 
+
+.hero-block__button {
+  margin-top: var(--spacing-x6); 
+}
+
+.hero-block__block_left {
+  align-items: flex-start;
+  padding: var(--spacing-x12) var(--spacing-x15);
+}
+
+.how-rent__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--spacing-x4);
+}
+
+.how-rent__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-x12) var(--spacing-x8);
+  border: var(--border-grey-light);
+  border-radius: var(--border-radius-m);
+}
+
+.how-rent__card-title {
+  margin: 0;
+  margin-top: var(--spacing-x4);
+  margin-bottom: var(--spacing-x8);
+  text-align: center;
+}
+
+.how-choose__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--spacing-x10);
+  margin-inline: var(--spacing-x15);
+  margin-top: var(--spacing-x6);
+  margin-bottom: 0;
+}
+
+.how-choose__cards .vrezka {
+  height: 100%;
+}
+
+.how-choose__blocks {
+  margin-top: var(--spacing-x12);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: var(--spacing-x20);
+}
+
+.how-choose__block {
+  height: fit-content;
+  display: flex;
+  column-gap: var(--spacing-x12);
+}
+
+.how-choose__block-text {
+  margin: 0;
+}
+
+.how-choose__block-icon {
+  width: 60px;
+  height: 60px;
+}
+
+.what-keep__blocks {
+  display: flex;
+  column-gap: var(--spacing-x20);
+  margin-bottom: var(--spacing-x12);
+}
+
+.what-keep__list {
+  margin-top: var(--spacing-x4);
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--spacing-x4);
+}
+
+.what-keep__list-elem {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  column-gap: var(--spacing-x4);
+}
+
+.what-keep__list-elem::before {
+  content: none !important;
+  display: none !important;
+}
+
+.what-keep__list-text,
+.what-keep__text {
+  margin: 0;
+}
+
+.what-keep__card {
+  width: 401px;
+}
+
+.price-rent-spb__items {
+  display: flex;
+  gap: var(--spacing-x20);
+}
+
+.price-rent-spb__info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.price-rent-spb__contact-us {
+  max-width: 842px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-x12);
+  margin-right: 481px;
+}
+
+.examples__card {
+  min-width: 280px;
+}
+
+.examples__card-header {
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.examples__card-title {
+  margin: 0;
+  margin-block: var(--spacing-x5);
+  text-align: center;
+}
+
+.examples__card-img {
+  width: 100%;
+  margin-top: var(--spacing-x5);
+}
+
+.examples .swiper-button-prev_custom {
+  transform: translate(-120%, -90%);
+}
+
+.examples .swiper-button-next_custom {
+  transform: translate(120%, -90%);
+}
+
+.posadochnaya-page .hero-block__button  {
+  margin-inline: auto;
+}
+
+@media screen and (max-width: 1280px) {
+  .how-choose__cards .vrezka {
+    max-width: 100%;
+  }
+  
+  .swiper-button-next_examples,
+  .swiper-button-prev_examples {
+    display: none !important;
+  }
+
+  .price-rent-spb__items {
+    flex-direction: column;
+    gap: var(--spacing-x12);
+  }
+
+  .price-rent-spb__contact-us {
+    max-width: 100%;
+    margin-right: 0;
+    margin-top: var(--spacing-x12);
+  }
+
+  .how-rent__cards {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-x4);
+  }
+
+  .how-rent__card-text {
+    width: 100%;
+  }
+
+  .how-choose__cards {
+    grid-template-columns: 1fr;
+    row-gap: var(--spacing-x10);
+    margin-top: var(--spacing-x8);
+    margin-inline: var(--spacing-x8);
+  }
+
+  .how-choose__blocks {
+    grid-template-columns: 1fr;
+    row-gap: var(--spacing-x6);
+  }
+
+  .what-keep__blocks {
+    flex-direction: column;
+    row-gap: var(--spacing-x20);
+  }
+
+  .what-keep__card {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .examples__card {
+    min-width: 220px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .hero-block__text {
+    text-align: left;
+  }
+}
+
+.page-top {
+  display: none;
+}

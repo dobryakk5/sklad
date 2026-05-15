@@ -1,0 +1,8 @@
+{
+    "require": {
+        "firebase/php-jwt": "^5.2",
+        "kreait/firebase-php": "^5.3",
+        "nesbot/carbon": "^2.35",
+        "endroid/qr-code": "^5.1"
+    }
+}

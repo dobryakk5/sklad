@@ -1,0 +1,24 @@
+.form-managerOrder .thumbnail {
+	border: none;
+}
+.form-managerOrder .licence_custom .licence_block.bx_filter {
+    margin-top: 20px !important;
+}
+.form-managerOrder .btn[name=web_form_submit] {
+    margin-top: 5px !important;
+}
+.form-managerOrder .captcha-row {
+	margin-top: 20px;
+	margin-bottom: 10px;
+}
+@media(max-width: 991px) {
+	.form-managerOrder .licence_custom .licence_block.bx_filter {
+		margin-top: 0 !important;
+	}
+	.form-managerOrder .btn[name=web_form_submit] {
+		margin-top: 0 !important;
+	}
+}
+.form-managerOrder .form-container .captcha-row .captcha_input{
+	position: initial;
+}

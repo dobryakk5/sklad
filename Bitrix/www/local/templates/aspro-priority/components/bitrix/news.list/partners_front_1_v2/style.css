@@ -1,0 +1,38 @@
+.partners_scroll.partners_custom {
+	padding-bottom: 80px !important;
+	padding-top: 0 !important;
+}
+body.with_decorate .index .item-views.partners_custom {
+    padding-left: 0;
+    padding-right: 0;
+	padding-top: 0;
+}
+body.with_decorate .index .item-views.reviews_scroll {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.reviews_custom .reviews_scroll h2 {
+	display: none;
+}
+.reviews_custom {
+	margin-bottom: -30px;
+	margin-left: -30px;
+	margin-right: -30px;
+}
+.reviews_custom .item-views.reviews_items.front_items .flexslider .flex-direction-nav .flex-prev {
+    left: 10px;
+}
+.reviews_custom .item-views.reviews_items.front_items .flexslider .flex-direction-nav .flex-next {
+    right: 10px;
+}
+.reviews_custom::before {
+	content: '';
+	position: absolute;
+	background-image: url('/bitrix/templates/aspro-priority/images/custom/tria-grey.png');
+	width: 62px;
+	height: 31px;
+	margin-top: -31px;
+	left: 50%;
+	margin-left: -31px;
+}

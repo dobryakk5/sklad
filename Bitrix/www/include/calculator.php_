@@ -1,0 +1,354 @@
+<style>
+.rental_catalog_slider {
+	position: relative;
+}
+.box_filter_slider {
+	min-height: 380px;
+}
+.box_filter_slider .flexslider {
+	margin-bottom: 0;
+}
+.box_filter_slider .thmb_wrap .thmb {
+	max-width: none !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+.box_filter_slider #carousel .slides li {
+	opacity: 0.5;
+	cursor: pointer;
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+}
+.box_filter_slider #carousel .slides li.flex-active-slide {
+	opacity: 1;
+}
+.box_filter_slider .flexslider .flex-next {
+    right: -9px;
+    margin-top: -25px;
+}
+.box_filter_slider .flexslider .flex-prev {
+    left: -9px;
+    margin-top: -25px;
+}
+
+.calculator .calculator_result .square_result.small {
+	margin-bottom: 30px;
+	color: #333;
+	font-size: 1.1em;
+}
+.calculator .calculator_result .square_result.small span {
+	color: #ef5a54;
+}
+.calculator .calculator_result .selected_items_list {
+	height: 300px;
+	direction: rtl;
+}
+.calculator .calculator_result .selected_items_list .scroll {
+	direction: ltr;
+}
+
+
+.calculator .calculator_result .selected_items_list .item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 0;
+	position: relative;
+	color: #333;
+}
+.calculator .calculator_result .selected_items_list .item .icon.yes {
+	flex-basis: 35px;
+}
+.calculator .calculator_result .selected_items_list .item .icon.yes img {
+	display: block;
+	margin-top: -4px;
+}
+.calculator .calculator_result .selected_items_list .item .name {
+	flex-basis: auto;
+	width: 70%;
+	line-height: 1em;
+}
+.calculator .calculator_result .selected_items_list .square {
+	align-self: center;
+	flex-basis: 53px;
+}
+.calculator .calculator_result .selected_items_list .icon.delete {
+	flex-basis: 20px;
+	text-align: right;
+	cursor: pointer;
+}
+@media(min-width: 991px) {
+	.calculator .calculator_result .shadow-box {
+		margin-top: 0px;
+	}
+}
+@media(max-width: 991px) {
+	.calculator .calculator_result .selected_items_list .item .name {
+		width: 60%;
+	}
+}
+
+.calculator .ss-scroll {
+    width: 3px;
+}
+.calculator .row.slim {
+    margin-left: 0;
+    margin-right: 0;
+}
+.calculator .row.slim > [class^="col-"], 
+.calculator .slim > [class*=" col-"] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.calculator .calculator_items_list .item {
+	border: 1px solid #eff1f5;
+	padding: 15px;
+	margin-right: -1px;
+	margin-bottom: -1px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.calculator .calculator_items_list .item .icon {
+	min-width: 40px;
+}
+.calculator .calculator_items_list .item .name {
+	flex-basis: 70%;
+	max-height: 30px;
+	overflow: hidden;
+	font-size: 0.8em;
+	line-height: 1.2em;
+}
+.calculator .calculator_items_list .item .counter {
+	flex-basis: 80px;
+}
+.calculator .calculator_items_list .item .counter input {
+	width: 80px;
+	border: 1px solid #e4e4e4;
+	text-align: center;
+	background-color: #eff1f5;
+	border-radius: 5px;
+}
+</style>
+
+<script src="<?=SITE_TEMPLATE_PATH?>/js/simple-scrollbar.min.js"></script>
+<link href="<?=SITE_TEMPLATE_PATH?>/css/simple-scrollbar.css" rel="stylesheet" />
+
+<div class="calculator">
+	<div class="row">
+		<div class="col-md-8 col-xs-12">
+			<div class="calculator_items_list">
+				<div class="row slim">
+				
+					<div class="col-md-4 col-xs-12">
+						<div class="item">
+							<div class="icon">
+								<img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-test-01.png" />
+							</div>
+							<div class="name">
+								Санки детские<br>
+								Ролики
+							</div>
+							<div class="counter">
+								<input type="number" min="0" value="0" />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 col-xs-12">
+						<div class="item">
+							<div class="icon">
+								<img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-test-01.png" />
+							</div>
+							<div class="name">
+								Санки
+							</div>
+							<div class="counter">
+								<input type="number" min="0" value="0" />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 col-xs-12">
+						<div class="item">
+							<div class="icon">
+								<img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-test-01.png" />
+							</div>
+							<div class="name">
+								Санки детские<br>
+								Ролики
+							</div>
+							<div class="counter">
+								<input type="number" min="0" value="0" />
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 col-xs-12">
+						<div class="item">
+							<div class="icon">
+								<img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-test-01.png" />
+							</div>
+							<div class="name">
+								Санки детские<br>
+								Ролики
+							</div>
+							<div class="counter">
+								<input type="number" min="0" value="0" />
+							</div>
+						</div>
+					</div>					
+										
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-xs-12">
+			<div class="calculator_result">
+				<div class="shadow-box">
+					<h3>Ваш Бокс</h3>
+					<div class="square_result small">
+						Общая площадь бокса: <span>300 кв. м.</span>						
+					</div>
+					
+					<div class="box_filter_slider">
+						<div class="flexslider flexslider-init flexslider-direction-nav" id="slider">
+							<ul class="slides">
+								<li class="item">
+									<a href="/upload/iblock/410/410717e696b859bc0eb02514da7cc192.jpg" target="_blank" class="fancybox" data-fancybox-group="gallery_rental_catalog" title="">
+										<img alt="" class="img-responsive" src="/upload/resize_cache/iblock/410/427_305_2/410717e696b859bc0eb02514da7cc192.jpg">								
+									</a>
+								</li>
+								<li class="item">
+									<a href="/upload/iblock/410/410717e696b859bc0eb02514da7cc192.jpg" target="_blank" class="fancybox" data-fancybox-group="gallery_rental_catalog" title="">
+										<img alt="" class="img-responsive" src="/upload/resize_cache/iblock/410/427_305_2/410717e696b859bc0eb02514da7cc192.jpg">								
+									</a>
+								</li>
+								<li class="item">
+									<a href="/upload/iblock/410/410717e696b859bc0eb02514da7cc192.jpg" target="_blank" class="fancybox" data-fancybox-group="gallery_rental_catalog" title="">
+										<img alt="" class="img-responsive" src="/upload/resize_cache/iblock/410/427_305_2/410717e696b859bc0eb02514da7cc192.jpg">								
+									</a>
+								</li>
+								<li class="item">
+									<a href="/upload/iblock/410/410717e696b859bc0eb02514da7cc192.jpg" target="_blank" class="fancybox" data-fancybox-group="gallery_rental_catalog" title="">
+										<img alt="" class="img-responsive" src="/upload/resize_cache/iblock/410/427_305_2/410717e696b859bc0eb02514da7cc192.jpg">								
+									</a>
+								</li>								
+							</ul>
+						</div>
+						
+						<div class="thmb_wrap">
+							<div class="thmb flexslider unstyled" id="carousel">
+								<ul class="slides">					
+									<li class="blink">
+										<img class="img-responsive inline" src="/upload/resize_cache/iblock/410/100_100_2/410717e696b859bc0eb02514da7cc192.jpg" />
+									</li>
+									<li class="blink">
+										<img class="img-responsive inline" src="/upload/resize_cache/iblock/410/100_100_2/410717e696b859bc0eb02514da7cc192.jpg" />
+									</li>
+									<li class="blink">
+										<img class="img-responsive inline" src="/upload/resize_cache/iblock/410/100_100_2/410717e696b859bc0eb02514da7cc192.jpg" />
+									</li>
+									<li class="blink">
+										<img class="img-responsive inline" src="/upload/resize_cache/iblock/410/100_100_2/410717e696b859bc0eb02514da7cc192.jpg" />
+									</li>									
+								</ul>
+							</div>
+						</div>			
+					</div>	
+
+					<script>
+					$(document).ready(function() {
+
+						$('.box_filter_slider #carousel').flexslider({
+							animation: 'slide',
+							controlNav: false,
+							animationLoop: false,
+							slideshow: false,
+							itemWidth: 86,
+							itemMargin: 8,
+							directionNav: false,
+							touch: true,
+							minItems: 2,
+							maxItems: 8,
+							asNavFor: '.box_filter_slider #slider',
+							start: function(){
+								$('.box_filter_slider').height('auto');
+								$('.box_filter_slider #carousel').css({'width': 'auto', 'opacity': 1});
+							}
+						});
+
+						$('.box_filter_slider #slider').flexslider({
+							animation: 'slide',
+							controlNav: false,
+							animationLoop: false,
+							slideshow: false,
+							directionNav: true,
+							sync: '.box_filter_slider #carousel',
+						});
+
+					});					
+					</script>
+					
+					<div class="selected_items_list" ss-container>
+						<div class="scroll">
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Напольный кондиционер</div>
+								<div class="square">3.6 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Пианино</div>
+								<div class="square">5 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Холодильник стандартный длинное название</div>
+								<div class="square">22.6 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Напольный кондиционер</div>
+								<div class="square">3.6 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Пианино</div>
+								<div class="square">5 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Холодильник стандартный длинное название</div>
+								<div class="square">22.6 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Напольный кондиционер</div>
+								<div class="square">3.6 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Пианино</div>
+								<div class="square">5 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+							<div class="item">
+								<div class="icon yes"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-01.png" /></div>
+								<div class="name">Холодильник стандартный длинное название</div>
+								<div class="square">22.6 м<sup>2</sup></div>
+								<div class="icon delete"><img src="<?=SITE_TEMPLATE_PATH?>/images/custom/icon-calc-02.png" /></div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+			</div>
+		</div>		
+	</div>
+</div>

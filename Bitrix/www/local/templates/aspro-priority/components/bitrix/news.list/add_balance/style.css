@@ -1,0 +1,122 @@
+.cabinet_balance .inner_border {
+    border: 1px solid #f2f2f2;
+}
+.cabinet_balance .sale-personal-account-wallet-container {
+    max-width: 100%;
+    background: #fbfbfb;
+	border-bottom: 1px solid #f2f2f2;
+	padding-bottom: 20px;
+}
+.cabinet_balance .sale-personal-account-wallet-container .sale-personal-account-wallet-title {
+    background: none;
+    font-size: 12px;
+    color: #888;
+    font-weight: 400;
+    padding: 18px 43px 8px;
+}
+.cabinet_balance .sale-personal-account-wallet-container .sale-personal-account-wallet-list-container {
+    background: none;
+    color: #333;
+}
+.cabinet_balance .sale-personal-account-wallet-container .sale-personal-account-wallet-list-item {
+    padding: 0 0 24px 70px;
+    margin: 0 30px 0 43px;
+	position: relative;
+	overflow: hidden;
+}
+.cabinet_balance .sale-personal-account-wallet-sum {
+    white-space: nowrap;
+    font-weight: bold;
+	float: none;
+	display: inline-block;
+	vertical-align: baseline;
+	padding: 0 26px 0 0;
+	font-size: 36px;
+	line-height: 40px;
+	color: #333;	
+}
+.cabinet_balance .sale-personal-account-wallet-currency {
+    font-size: 20px;
+    line-height: 24px;
+    color: #777;
+	float: none;
+	display: inline-block;
+	vertical-align: baseline;
+	padding: 0 26px 0 0;	
+}
+.cabinet_balance .sale-personal-account-wallet-currency-item {
+    color: #955d00;
+	font-size: 11px;
+	line-height: 16px;
+	font-weight: 600;
+}
+.cabinet_balance .sale-personal-section-account-sub-header {
+    padding: 0 20px 0 42px;
+    font-size: 18px;
+    color: #333;
+    margin: 28px 0 20px;
+	font-weight: 500;
+}
+.cabinet_balance .bx-sap {
+    padding: 0 20px 38px 42px;
+}
+.cabinet_balance .bx-sap .sale-acountpay-title {
+    color: #777;
+    margin-bottom: 10px;
+	font-size: 14px;
+	font-weight: 500;
+}
+.cabinet_balance .bx-sap .sale-acountpay-title + div {
+    max-width: 100% !important;
+    color: #333;
+}
+.cabinet_balance .sale-acountpay-fixedpay-list {
+    list-style: none;
+    margin: 0 0 30px 0;
+    padding: 0;
+}
+.cabinet_balance .sale-acountpay-fixedpay-list .sale-acountpay-fixedpay-item {
+	min-width: 75px;
+}
+
+.cabinet_balance .custom_sum_container {
+	margin-bottom: 30px;
+}
+.cabinet_balance .custom_sum_container input {
+	border: 1px solid #d3d3d3;
+}
+
+.cabinet_balance .contract_container {
+	margin: 20px 30px 10px 40px;
+}
+.cabinet_balance .contract_container select {
+	min-width: 216px;
+	border: 1px solid #ddd;
+}
+.cabinet_balance .contract_container .sale-acountpay-title {
+	/*font-weight: 500;*/
+	margin-bottom: 6px;
+}
+
+.cabinet_balance .contract_balance {margin-top: 52px; font-size: 1.2em; color: #333;}
+.cabinet_balance .contract_balance span {font-weight: bold;}
+
+.autopay-anonse-mobile {
+	display: none;
+}
+.autopay-anonse-desktop {
+	display: block;
+}
+
+@media(max-width: 768px) {
+	.cabinet_balance .contract_balance {padding: 40px; margin: 0; font-size: 1em;}
+	.cabinet_balance .contract_container select {
+		width: 100%;
+	}
+	.autopay-anonse-mobile {
+		display: block;
+	}
+	.autopay-anonse-desktop {
+		display: none;
+	}
+}

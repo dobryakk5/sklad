@@ -1,0 +1,39 @@
+.border_red {
+	margin-top: 50px;
+	padding: 30px;
+	border: 3px solid #ef5a54;
+}
+.form-managerOrder4 .errors {
+	margin-top: 20px;
+}
+.form-managerOrder4 .form-container .field {
+	margin-top: 30px;
+}
+.form-managerOrder4 .form-container .field input {
+	width: 100%;
+	border: none;
+	border-bottom: 1px solid #999;
+	background: none;
+	color: #999;
+	padding-bottom: 3px;
+}
+.form-managerOrder4 .form-container .field .btn {
+	width: 100%;
+}
+.form-managerOrder4 .form-container .form-fields .errors p {
+	font-size: 0.8em;
+}
+.form-managerOrder4 .captcha-row {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+.form-managerOrder4 .form-container .field.button-container {
+    margin-top: 25px;
+}
+
+.form-managerOrder4 .thumbnail {
+	margin-bottom: 0;
+}
+.form-managerOrder4 .form-container .captcha-row .captcha_input{
+	position: initial;
+}

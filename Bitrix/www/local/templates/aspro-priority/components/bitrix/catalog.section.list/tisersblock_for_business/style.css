@@ -1,0 +1,42 @@
+.for-business-info .photogallery_slider.detail {
+	margin-bottom: 0;
+}
+@media (max-width: 991px) {
+	.for-business-info .photogallery_slider.detail {
+		margin-top: 30px;
+	}
+}
+
+.photogallery_slider .flex-control-nav {
+    bottom: 10px;
+    display: block !important;
+}
+
+.photogallery_slider .thmb_wrap .thmb {
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.photogallery_slider .zoom {
+    top: 0;
+    right: 0;
+    background: none;
+}
+
+.photogallery_slider #carousel .slides li {
+    opacity: 0.5;
+    cursor: pointer;
+
+    -ms-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+}
+.photogallery_slider #carousel .slides li.flex-active-slide {
+    opacity: 1;
+}
+
+
+.for-business-info .detail.photogallery_slider .thmb_wrap {
+    height: 95px;
+}

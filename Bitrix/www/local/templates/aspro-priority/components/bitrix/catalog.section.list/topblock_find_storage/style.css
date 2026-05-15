@@ -1,0 +1,65 @@
+.topblock_find_storage .item-views.services-items.type_5 .items .item {
+    width: 33.3%;
+	background: #ffffff;
+}
+@media (max-width: 991px) {
+	.topblock_find_storage .item-views.services-items.type_5 .items .item {
+		width: 100% !important;
+	}
+}
+.topblock_find_storage .item-views.services-items.type_5 .items .item > .wrap {
+    padding-top: 26px;
+	padding-bottom: 26px;
+	padding-left: 40px;
+	padding-right: 40px;
+}
+.topblock_find_storage .item-views.services-items.type_5 .items .item .title {
+    font-weight: bold;
+	font-size: 1em;
+	color: #333;
+	text-align: left;
+	padding-left: 15px;
+}
+@media (max-width: 991px) {
+	.topblock_find_storage .item-views.services-items.type_5 .items .item .title {
+		text-align: left;
+		margin-left: 10px;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+	.topblock_find_storage .item-views.services-items.type_5 .items .item > .wrap .body-info .title::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		margin-top: -10px;
+		right: 0;
+		margin-right: 0;
+		width: 30px;
+		height: 20px;
+		background-image: linear-gradient(to left, rgb(255,255,255), rgba(255,255,255,0));
+	}
+}
+.topblock_find_storage .item-views.services-items.type_5 .items .item > .wrap a {
+    z-index: 20;
+}
+
+.topblock_find_storage .item-views.services-items.type_5 .items .item > .wrap .body-info::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    margin-top: -6px;
+	right: 0;
+	margin-right: 20px;
+    width: 7px;
+    height: 12px;
+    background: url('/bitrix/templates/aspro-priority/images/svg/header_icons.svg') 0 -65px no-repeat;
+    -webkit-transform: rotate(270deg);
+    -moz-transform: rotate(270deg);
+    -ms-transform: rotate(270deg);
+    -o-transform: rotate(270deg);
+    transform: rotate(270deg);
+}
+.topblock_find_storage .item-views.services-items.type_5 .items .item > .wrap .body-info svg {
+	position: absolute;
+	margin-left: -20px;
+}

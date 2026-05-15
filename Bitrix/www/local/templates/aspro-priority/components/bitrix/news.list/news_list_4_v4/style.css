@@ -1,0 +1,22 @@
+.useful_for_rental.item-views.news-items .item .period {
+	bottom: auto;
+}
+
+.useful_for_rental.item-views.news-items h3 {
+	margin-top: 0;
+}
+
+@media(max-width: 991px) {
+	.useful_for_rental.item-views .show_all {
+		float: none !important;
+	}
+	.useful_for_rental.item-views.news-items h3 {
+		margin-top: 20px;
+	}
+}
+/*.item-views .title-news h5 {
+    padding-right: 165px;
+}
+.item-views .title-news .show_all {
+    margin-top: 8px;
+}*/

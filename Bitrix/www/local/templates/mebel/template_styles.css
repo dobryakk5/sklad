@@ -1,0 +1,32 @@
+label.error{color: #fb5f5f !important;margin: 2px 0 0;display: block;padding: 0;right: 0;font-size: 0.8em;line-height: 1.5em;}
+.form .licence_block.bx_filter label.error{margin-top:0;}
+
+/* preloader */
+.overlay_form{position:absolute;top:0;right:0;bottom:0;left:0;z-index:100;background:rgba(255,255,255,0.7);}
+.overlay_form .loader{position: absolute;width: 80px;top:50%;left:50%;margin:-10px 0 0 -40px;}
+.overlay_form .duo{height: 20px;width: 50px;background: hsla(0, 0%, 0%, 0.0);position: absolute;}
+.overlay_form .duo, .overlay_form .dot{animation-duration: 0.8s;animation-timing-function: ease-in-out;animation-iteration-count: infinite;}
+.overlay_form .duo1{left: 0;}
+.overlay_form .duo2{left: 30px}
+.overlay_form .dot{width: 20px;height: 20px;border-radius: 10px;position: absolute;}
+.overlay_form .dot-a{left: 0px;}
+.overlay_form .dot-b{right: 0px;}
+
+
+@keyframes spin {
+0% { transform: rotate(0deg) }
+50% { transform: rotate(180deg) }
+100% { transform: rotate(180deg) }
+}
+
+@keyframes onOff {
+0% { opacity: 0; }
+49% { opacity: 0; }
+50% { opacity: 1; }
+100% { opacity: 1; }
+}
+
+.overlay_form .duo1{animation-name: spin;}
+.overlay_form .duo2{animation-name: spin;animation-direction: reverse;}
+.overlay_form .duo2 .dot-b{animation-name: onOff;}
+.overlay_form .duo1 .dot-a{opacity: 0;animation-name: onOff;animation-direction: reverse;}

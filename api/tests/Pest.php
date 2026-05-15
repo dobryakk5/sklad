@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
  // ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -46,4 +46,29 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function createDebtPaymentLink(array $attributes = []): \App\Models\DebtPaymentLink
+{
+    $campaign = \App\Models\DebtPaymentCampaign::create([
+        'source' => 'monthly_debt',
+        'campaign_date' => '2026-06-01',
+        'status' => \App\Models\DebtPaymentCampaign::STATUS_DONE,
+    ]);
+
+    return \App\Models\DebtPaymentLink::create(array_merge([
+        'campaign_id' => $campaign->id,
+        'token' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        'bitrix_user_id' => 123,
+        'customer_name' => 'Иванов Иван',
+        'customer_email' => 'client@example.ru',
+        'customer_phone' => '+79990000000',
+        'contract_number' => '5/23625',
+        'invoice_id' => 260726,
+        'invoice_number' => '260726',
+        'amount' => '208800.00',
+        'currency' => 'RUB',
+        'status' => \App\Models\DebtPaymentLink::STATUS_NEW,
+        'expires_at' => now()->addDays(10),
+    ], $attributes));
 }

@@ -1,0 +1,20 @@
+.form-managerOrder2 .form-container .field {
+  margin-top: 30px;
+}
+.form-managerOrder2 .form-container .field input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #999;
+  background: none;
+  color: #999;
+  padding-bottom: 3px;
+}
+.form-managerOrder2 .form-container .field .btn {
+  width: 100%;
+}
+.form-managerOrder2 .form-container .form-fields .errors p {
+  font-size: 0.8em;
+}
+.form-managerOrder2 .form-container .captcha-row .captcha_input {
+  position: initial;
+}

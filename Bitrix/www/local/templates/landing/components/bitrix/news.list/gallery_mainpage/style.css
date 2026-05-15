@@ -1,0 +1,10 @@
+.gallery_mainpage {
+	margin-top: 30px;
+}
+.gallery_mainpage .flexslider .flex-direction-nav a {
+	margin-top: -25px;
+}
+.gallery_mainpage .flexslider {
+	margin-bottom: 20px;
+	background: none;
+}

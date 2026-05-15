@@ -1,0 +1,18 @@
+@media(min-width: 480px) {
+	.item-views .catalog_opener.mobile {display: none;}
+}
+.item-views .catalog_opener.mobile {
+	border: 1px solid #eff1f5;
+}
+.item-views .catalog_opener.mobile:hover .arrow {
+	background-color: #fff !important;
+}
+.item-views .catalog_opener.mobile span.arrow {
+    display: block;
+}
+.item-views .catalog_opener.mobile.closed {
+    margin-bottom: 20px;
+}
+.item-views .catalog_opener.mobile.closed .arrow::after {
+    background-position: -73px -25px;
+}

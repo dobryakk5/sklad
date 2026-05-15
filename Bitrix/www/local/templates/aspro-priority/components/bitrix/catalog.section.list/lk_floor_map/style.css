@@ -1,0 +1,91 @@
+.map-floor {
+	
+}
+
+.map-floor .mapsvg {position:relative; /*text-align:center;*/ width:100%; overflow-x:auto;}
+.map-floor .mapsvg img {max-height:800px; visibility: hidden;}
+@media(max-width:991px) {
+	.map-floor .mapsvg img {width:100%;}
+}
+.map-floor .mapsvg svg {position: absolute; top:0; left:0; width:100%; height:100%;}
+.map-floor .mapsvg svg .part {cursor:pointer;}
+.map-floor .mapsvg svg .part.opened {
+	fill: #d76602; 
+	fill-opacity:.05; 
+	stroke: #d76602; 
+	stroke-width: 3px; 
+	/*stroke-dasharray:5% 2%;*/
+}
+.map-floor .mapsvg svg .part.opened.filtered {
+	fill:green; 
+	fill-opacity:.05; 
+	stroke:green;
+}
+.map-floor .mapsvg svg .part.opened[data-selected=Y] {
+	fill-opacity:.2; 
+}
+.map-floor .mapsvg svg .part.closed {
+	fill:#ffffff;
+	cursor:default;
+	stroke: #ffffff; 
+	stroke-width:5px; 
+	/*stroke-dasharray:5% 2%;*/
+}
+.map-floor .mapsvg .ajaxPreloader::before {
+	margin-top: 250px;
+}
+
+
+
+.map-floor .head-container {
+	margin-bottom: 20px;
+}
+.map-floor .head-container .title {
+	font-size: 1.15em;
+	font-weight: 400;
+	color: #333;
+}
+.map-floor .head-container .status {
+	font-size: 1.15em;
+	font-weight: 400;
+	color: #333;
+	text-align: right;
+}
+@media(max-width: 991px) {
+	.map-floor .head-container .status {
+		text-align: left;
+		margin-top: 10px;
+		/*padding-left: 24px;*/
+	}
+}
+.map-floor .head-container .status.info {
+	margin-bottom: 20px;
+}
+.map-floor .head-container .status.opened {
+	padding-right: 20px;
+	color: #999;
+	font-size: 1em;
+}
+.map-floor .head-container .status.opened::after {
+	content: "";
+	width: 14px;
+	height: 14px;
+	position: absolute;
+	margin-left: 6px;
+	margin-top: 7px;
+	background: #d76602;
+	border-radius: 7px;
+}
+.map-floor .head-container .status.opened.filtered::after {
+	background: #00a000;
+}
+.map-floor .button {
+	text-align: center;
+	margin-top: 20px;
+	margin-bottom: 40px;
+}
+/*.map-floor .map-floor-container {
+	display: none;
+	padding-bottom: 30px;
+}*/
+

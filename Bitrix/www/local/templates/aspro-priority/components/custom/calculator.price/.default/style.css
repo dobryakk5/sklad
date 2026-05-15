@@ -1,0 +1,169 @@
+/****** range customize ******/
+.calc-price .irs--round .irs-from,
+.calc-price .irs--round .irs-to,
+.calc-price .irs--round .irs-single {
+    background-color: #ef5a54;
+}
+.calc-price .irs--round .irs-from::before,
+.calc-price .irs--round .irs-to::before,
+.calc-price .irs--round .irs-single::before {
+    border-top-color: #ef5a54;
+}
+.calc-price .irs--round .irs-handle {
+    border-color: #ef5a54;
+    box-shadow: 0 1px 3px rgba(238, 89, 53, 0.3);
+    cursor: pointer;
+}
+.calc-price .irs--round .irs-handle.state_hover,
+.calc-price .irs--round .irs-handle:hover {
+	background-color: #f8f9fb;
+}
+.calc-price .irs--round .irs-bar {
+    background-color: #ef5a54;
+}
+.calc-price .irs-line {
+    cursor: pointer;
+}
+.calc-price .irs-line .irs--round .irs-grid-text{
+    font-size: 13px;
+}
+/****** end range customize ******/
+
+.calc-price{
+    border: 1px solid #ef5a54;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.calc-price__head{
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 25px;
+}
+.calc-price__subhead{
+    margin: 20px 0;
+    font-size: 1.4em;
+}
+.calc-price__small{
+    font-size: 12px;
+}
+.calc-price__price{
+    margin: 15px 0;
+}
+.calc-price__price-value{
+    font-size: 2em;
+    font-weight: bold;
+}
+.calc-price__price-text{
+    font-size: 1.6em;
+    font-weight: bold;
+}
+
+.calc-price__send{
+    margin-top: 15px;
+}
+
+.calc-price__sklad-info-item{
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.calc-price__sklad-full-info-item{
+    margin-top: 15px;
+}
+
+.dropdown__toggle{
+    padding: 10px;
+    border: 1px solid #ef5a54;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.dropdown__list{
+    display: none;
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ef5a54;;
+    margin-top: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 50;
+    overflow: auto;
+    align-items: center;
+    width: 100%;
+    box-shadow: 2px 1px 6px;
+}
+.dropdown__item{
+    display: flex;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+.dropdown__list .dropdown__item{
+    padding: 5px 10px 5px 10px;
+}
+.dropdown__list .dropdown__item:hover{
+    background: #efefef;
+}
+
+.dropdown__item-promo{
+    display: flex;
+    align-items: center;
+    max-width: 125px;
+}
+.dropdown__item-promo .label{
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.dropdown__item-left{
+    display: flex;
+    flex-grow: 1;
+}
+
+.dropdown__item-icon{
+    flex: 0 0 20px;
+    max-width: 20px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    fill: #D9232E;
+}
+.dropdown__item-icon svg{
+    max-width: 100%;
+    fill: inherit
+}
+
+.dropdown__toggle-wrap{
+    display: flex;
+    flex: 1 1 auto;
+}
+
+.dropdown__toggle{
+    display: flex;
+    justify-content: space-between;
+}
+.dropdown__toggle-icon{
+    padding-left: 15px;
+}
+
+.calc-price .dropdown{
+    margin-bottom: 20px;
+}
+
+.calc-price .dropdown__toggle{
+    max-width: 600px;
+}
+
+.calc-price .dropdown__list{
+    max-width: 600px;
+}
+.calc-price__price-wrap{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+.calc-price__price{
+    flex: 0 0 400px;
+}
